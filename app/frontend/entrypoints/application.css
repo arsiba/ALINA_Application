@@ -12,6 +12,10 @@
 @plugin "@tailwindcss/forms";
 
 :root {
+  color-scheme: light;
+  --logo-red: #cc0000;
+  --logo-red-deep: #990000;
+  --logo-orange: #ff3e00;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -47,6 +51,10 @@
 }
 
 .dark {
+  color-scheme: dark;
+  --logo-red: #ff6860;
+  --logo-red-deep: #e84a4a;
+  --logo-orange: #ff9266;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

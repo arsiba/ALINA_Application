@@ -3,6 +3,12 @@
   <head>
     <title><%= content_for(:title) || "ALINA" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <%= javascript_tag nonce: true do %>
+      document.documentElement.classList.toggle(
+        'dark', window.matchMedia('(prefers-color-scheme: dark)').matches
+      );
+    <% end %>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
