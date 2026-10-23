@@ -1,12 +1,12 @@
 <script>
   import { Toaster as Sonner } from "svelte-sonner";
-  import { theme } from "$lib/stores/theme.js";
+  import { resolvedTheme } from "$lib/stores/theme.js";
 
   let { ...restProps } = $props();
 </script>
 
 <Sonner
-  {theme}
+  theme={$resolvedTheme}
   class="toaster group"
   toastOptions={{
     classes: {
