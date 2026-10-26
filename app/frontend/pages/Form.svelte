@@ -1,5 +1,7 @@
 <script>
   import Layout from '../layouts/layout.svelte';
+  import FormWorkflow from '$lib/components/assessment/FormWorkflow.svelte';
+  import { assessmentSteps, previewLabels, previewValues } from '$lib/assessment/steps.js';
 </script>
 
 <svelte:head>
@@ -7,8 +9,7 @@
 </svelte:head>
 
 <Layout>
-  <div class="mx-auto max-w-5xl px-6 py-12">
-    <h1 class="text-3xl font-semibold">Form</h1>
-    <p class="mt-4 text-muted-foreground">The assessment form will appear here. This is a placeholder.</p>
+  <div class="mx-auto w-full min-w-0 max-w-2xl px-5 py-4 [overflow-wrap:anywhere] sm:px-6 sm:py-8">
+    <FormWorkflow steps={assessmentSteps} {previewLabels} {previewValues} />
   </div>
 </Layout>
