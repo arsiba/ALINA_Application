@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+
+if (( $# > 0 )); then
+  printf 'Usage: bin/test (runs all local checks)\n' >&2
+  exit 2
+fi
+
+step="Check prerequisites"
+trap 'status=$?; printf "\nFailed: %s (exit code %s).\n" "$step" "$status" >&2; exit "$status"' ERR
+
+run() {
+  step="$1"
+  shift
+  printf '\n== %s ==\n' "$step"
+  "$@"
+}
+
+for tool in ruby bundle node npm; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf 'Missing prerequisite: %s\n' "$tool" >&2
+    exit 1
+  fi
+done
+
+if [[ ! -x node_modules/.bin/vite ]]; then
+  printf 'Frontend dependencies are missing. Run first:\nnpm ci --legacy-peer-deps --no-audit --no-fund\n' >&2
+  exit 1
+fi
+
+# Browser dependencies are only needed once feature specs are present.
+if [[ -d spec/features ]]; then
+  for browser_tool in /usr/bin/chromium /usr/bin/chromedriver; do
+    if [[ ! -x "$browser_tool" ]]; then
+      printf 'Missing browser test prerequisite: %s\n' "$browser_tool" >&2
+      exit 1
+    fi
+  done
+fi
+
+export RAILS_ENV=test
+export CI=true
+export BUNDLE_FROZEN=true
+export VITE_RUBY_AUTO_BUILD=false
+export VITE_RUBY_PUBLIC_OUTPUT_DIR=vite
+export VITE_RUBY_DEV_SERVER_CONNECTION_CHECK=false
+export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-$PWD/tmp/rubocop}"
+
+# Reuse installed dependencies and caches instead of downloading on every run.
+run "Check Ruby dependencies (run bundle install first if needed)" bundle check
+run "Ruby linting" bundle exec rubocop --no-parallel
+run "Security analysis" bundle exec brakeman --no-pager
+# Build once, then exercise the same production assets in the browser tests.
+run "Frontend production build" env RAILS_ENV=production RACK_ENV=production npm run build
+run "Prepare test database" bin/rails db:prepare
+run "Check Rails autoloading" bin/rails zeitwerk:check
+if [[ -d spec/features ]]; then
+  run "RSpec without browser" bundle exec rspec --exclude-pattern 'spec/features/**/*_spec.rb' --format progress
+  run "RSpec with Chromium" bundle exec rspec spec/features --format progress
+else
+  run "RSpec" bundle exec rspec --format progress
+fi
+
+printf '\nAll checks passed.\n'
