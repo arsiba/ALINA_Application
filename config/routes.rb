@@ -10,5 +10,6 @@ Rails.application.routes.draw do
   root "pages#home"
   get "about" => "pages#about", as: :about
   get "form" => "pages#form", as: :form
+  post "form/submissions" => "form_submissions#create", as: :form_submissions
   get "result" => "pages#result", as: :result
 end
