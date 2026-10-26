@@ -28,6 +28,18 @@ Built with Ruby on Rails, Svelte, and Inertia.js.
 
 This repository was bootstrapped using the [Rails + Svelte starter template](https://github.com/georgekettle/rails_svelte).
 
+## Local test pipeline
+
+Run all checks with:
+
+```sh
+bin/test
+```
+
+Runs linting, security analysis, the production frontend build, Rails checks, and
+RSpec. Chromium tests run when `spec/features` exists. Enable the pre-commit hook
+once per clone with `git config --local core.hooksPath .githooks`.
+
 ---
 
 <sub>This README was generated with the assistance of AI.</sub>
