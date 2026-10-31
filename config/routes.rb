@@ -11,5 +11,6 @@ Rails.application.routes.draw do
   get "about" => "pages#about", as: :about
   get "form" => "pages#form", as: :form
   post "form/submissions" => "form_submissions#create", as: :form_submissions
+  get "cookies" => "pages#cookie_information", as: :cookie_information
   get "result" => "pages#result", as: :result
 end

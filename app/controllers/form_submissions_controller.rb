@@ -5,10 +5,15 @@ class FormSubmissionsController < ApplicationController
     end
 
     public_id = params[:assessment_id].downcase
+    if participation_cookies.participated? && !Assessment.completed.exists?(public_id: public_id)
+      return render json: { error: "In diesem Browser wurde bereits eine Teilnahme abgeschlossen. Eine erneute Teilnahme ist nicht möglich." }, status: :conflict
+    end
+
     if params[:step] == "baseline"
       AssessmentSubmission.baseline(public_id: public_id, data: params[:data])
     else
       AssessmentSubmission.evaluation(public_id: public_id, data: params[:data])
+      participation_cookies.mark_participated
     end
 
     render json: { accepted: true, step: params[:step] }
