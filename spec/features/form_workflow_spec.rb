@@ -1,17 +1,5 @@
 require "rails_helper"
-require "capybara/rspec"
-require "selenium-webdriver"
-
-Capybara.app = Rails.application
-Capybara.register_driver :assessment_chrome do |app|
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.binary = "/usr/bin/chromium"
-  options.add_argument("--headless=new")
-  options.add_argument("--no-sandbox")
-  options.add_argument("--disable-dev-shm-usage")
-  service = Selenium::WebDriver::Chrome::Service.new(path: "/usr/bin/chromedriver")
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options, service: service)
-end
+require_relative "../support/browser"
 
 RSpec.describe "Assessment workflow", type: :feature do
   before do
@@ -157,6 +145,7 @@ RSpec.describe "Assessment workflow", type: :feature do
   end
 
   it "transmits null and safety refusal statuses without exposing inference values" do
+    allow(Rails.application.config.x).to receive(:results_min_participants).and_return(1)
     send_baseline
     inference = AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }
     inference["alter"] = nil
@@ -182,6 +171,10 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(payload["data"]["ratings"]).to include("alter" => "invalid", "geschlecht" => "invalid")
     expect(payload.to_json).not_to include("LOCAL_SECRET", "SICHERHEITSRICHTLINIE")
     expect(Assessment.completed.find_by!(public_id: payload["assessment_id"]).evaluation).to include(overestimation_count: 1, excluded_count: 1)
+    click_link "Zur Auswertung"
+    expect(page).to have_text("Das Gesamtbild")
+    expect(page).not_to have_text("Deine persönliche Auswertung")
+    expect(page).not_to have_css('[aria-labelledby="personal-heading"]')
   end
 
   [ "editing", "review" ].each do |stage|

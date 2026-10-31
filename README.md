@@ -58,14 +58,45 @@ excluded and counted separately. Rates are `nil` when the denominator is zero.
 Counts remain available for later evaluation, including the number of exclusions.
 The instrument version identifies the questionnaire and prompt contract; increment
 it when that contract changes and keep different versions separate in future studies.
-Public aggregate results and their minimum participant threshold are deferred along
-with visualization. Individual evaluation data is not exposed by a read endpoint.
+Public aggregate results are served as Inertia props on `GET /result`. Individual
+evaluation data is not exposed by a read endpoint.
+
+### Results configuration
+
+Copy `.env.example` to `.env` for local development (`cp .env.example .env`).
+Rails loads `.env` automatically in development and test; existing environment
+variables take precedence. The local file is ignored by Git, while `.env.example`
+is versioned.
+
+Set `RESULTS_MIN_PARTICIPANTS=10` in `.env` (10 is the default), then restart Rails.
+In production, set the variable in the server environment. The value must be a positive integer; invalid values prevent
+startup. Only completed assessments of `Assessment::INSTRUMENT_VERSION` count.
+Below the threshold the response contains no participant counts, rates or subgroup
+data. The server enforces the threshold for both initial HTML and Inertia requests,
+ignores client-supplied filters and sends `Cache-Control: no-store`.
+
+The results page shows pooled gap, underestimation and overestimation rates,
+agreement, category comparisons, a four-cell expectation/outcome table, coverage,
+non-inferences, exclusions and the equally weighted mean individual gap. A rate
+with denominator zero remains undefined. Every published age group must reach the
+configured participant threshold. Undersized age groups are omitted server-side;
+if their combined remainder is below the threshold, the smallest otherwise eligible
+age group is also omitted to protect against reconstruction from overall totals.
+If no age groups can be published, the age section is hidden entirely. LLM
+breakdowns remain withheld as a whole when any represented LLM group is too small.
+No intersections of age and LLM are published. These are minimum group-size rules,
+not a guarantee against all disclosure risks, including changes between visits.
+
+The public results page contains aggregated results only. It does not display or
+retain a personal evaluation, and no individual results are fetched by assessment
+identifier. The methodology remains visible while results are locked.
 
 Model specs cover the measurement rules, pending versus imported nulls, relational
-constraints and zero-denominator cases. Request specs cover persistence, validation,
+constraints and zero-denominator cases. Request specs cover publication thresholds, persistence, validation,
 transaction rollback, retries and conflicts. Browser specs cover the two approved
 transfers, local processing of inference values and transmission of null/refusal
-statuses. These checks exercise storage and evaluation requirements FA-09–FA-13 and
+statuses. Additional result specs cover subgroup suppression, weighting, undefined
+rates, responsive charts and aggregate-only result navigation. These checks exercise storage and evaluation requirements FA-09–FA-13 and
 reproducibility/error handling QA-04–QA-05 from the thesis; they do not replace an
 empirical study of the prompt or a representative awareness survey.
 

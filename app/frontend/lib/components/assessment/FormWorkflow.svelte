@@ -3,7 +3,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import DataPreview from './DataPreview.svelte';
 
-  let { steps, previewLabels = {}, previewValues = {} } = $props();
+  let { steps, previewLabels = {}, previewValues = {}, completedActions } = $props();
   const initialDraft = (step) => Object.fromEntries(step.forms.map((form) => [form.dataKey ?? form.id, structuredClone(form.initialData)]));
   let index = $state(0);
   let formIndex = $state(0);
@@ -162,7 +162,8 @@
       <p class="mt-4 leading-relaxed text-muted-foreground">Deine offenen Angaben wurden verworfen. Bereits gesendete Angaben werden durch den Abbruch nicht zurückgenommen.</p>
       <Button class="mt-8 min-h-12 w-full sm:w-auto" variant="outline" href="/">Zur Startseite</Button>
     {:else if stage === 'completed'}
-      <p class="mt-4 leading-relaxed text-muted-foreground">Alle Abschnitte wurden vom Endpunkt angenommen. Du findest die gesendeten Angaben unten.</p>
+      <p class="mt-4 leading-relaxed text-muted-foreground">Deine Antworten wurden gespeichert. Du findest die gesendeten Angaben unten.</p>
+      {@render completedActions?.()}
     {/if}
   </section>
 

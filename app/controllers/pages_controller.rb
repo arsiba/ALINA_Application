@@ -12,6 +12,7 @@ class PagesController < ApplicationController
   end
 
   def result
-    render inertia: "Result"
+    response.headers["Cache-Control"] = "no-store"
+    render inertia: "Result", props: { results: AssessmentResults.call }
   end
 end
