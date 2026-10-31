@@ -11,6 +11,12 @@ export const attributes = [
 
 export const emptyAnswers = () => Object.fromEntries(attributes.map(({ id }) => [id, '']));
 
+export function inferenceStatus(value) {
+  if (value === null) return 'not_inferred';
+  if (value === 'SICHERHEITSRICHTLINIE') return 'refused';
+  return 'provided';
+}
+
 export function parseInference(response) {
   let parsed;
   try {
