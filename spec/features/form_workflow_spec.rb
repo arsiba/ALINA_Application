@@ -37,7 +37,7 @@ RSpec.describe "Assessment workflow", type: :feature do
   after { Capybara.use_default_driver }
 
   def answer_questions(value)
-    FormSubmissionsController::ATTRIBUTES.each_with_index do |_attribute, index|
+    AttributeResponse::CATEGORIES.each_with_index do |_attribute, index|
       expect(page).to have_css("fieldset", count: 1)
       find("input[value='#{value}']").click
       click_button(index == 7 ? "Abschnitt prüfen" : "Weiter")
@@ -97,7 +97,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     click_button "Jetzt senden"
     expect(page).to have_field("inference-response")
     check_responsive_layout
-    inference = FormSubmissionsController::ATTRIBUTES.index_with { "32–34 Jahre" }
+    inference = AttributeResponse::CATEGORIES.index_with { "32–34 Jahre" }
     fill_in "inference-response", with: inference.to_json
     click_button "Weiter"
     check_responsive_layout
@@ -138,7 +138,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(first["data"].keys).to contain_exactly("basis", "expectations")
     expect(first["data"]["expectations"].values).to eq([ "yes" ] * 8)
 
-    inference = FormSubmissionsController::ATTRIBUTES.index_with { "LOCAL_SECRET" }
+    inference = AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }
     fill_in "inference-response", with: inference.to_json
     click_button "Weiter"
     expect(page).to have_text("LOCAL_SECRET")
@@ -150,9 +150,38 @@ RSpec.describe "Assessment workflow", type: :feature do
     submissions = page.evaluate_script("window.submissions")
     expect(submissions.length).to eq(2)
     expect(submissions[1]["assessment_id"]).to eq(first["assessment_id"])
-    expect(submissions[1]["data"].keys).to eq([ "ratings" ])
+    expect(submissions[1]["data"].keys).to contain_exactly("ratings", "inference_statuses")
+    expect(submissions[1]["data"]["inference_statuses"].values).to eq([ "provided" ] * 8)
     expect(submissions.to_json).not_to include("LOCAL_SECRET", "response", "attributes")
     expect(page).to have_css("details", count: 2)
+  end
+
+  it "transmits null and safety refusal statuses without exposing inference values" do
+    send_baseline
+    inference = AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }
+    inference["alter"] = nil
+    inference["geschlecht"] = "SICHERHEITSRICHTLINIE"
+    fill_in "inference-response", with: inference.to_json
+    click_button "Weiter"
+    expect(page).to have_text("als Überschätzung berücksichtigt")
+    expect(page).not_to have_field("Richtig")
+    click_button "Weiter"
+    expect(page).to have_text("aus dem Vergleich ausgeschlossen")
+    click_button "Weiter"
+    AttributeResponse::CATEGORIES.drop(2).each_with_index do |_category, index|
+      find('input[value="correct"]').click
+      click_button(index == 5 ? "Abschnitt prüfen" : "Weiter")
+    end
+    expect(page).to have_text("Keine Ableitung (null)")
+    expect(page).to have_text("Durch Sicherheitsrichtlinie verweigert")
+    expect(page).not_to have_text("LOCAL_SECRET")
+    click_button "Jetzt senden"
+    expect(page).to have_text("Alle 2 Abschnitte gesendet.")
+    payload = page.evaluate_script("window.submissions[1]")
+    expect(payload["data"]["inference_statuses"]).to include("alter" => "not_inferred", "geschlecht" => "refused", "beruf" => "provided")
+    expect(payload["data"]["ratings"]).to include("alter" => "invalid", "geschlecht" => "invalid")
+    expect(payload.to_json).not_to include("LOCAL_SECRET", "SICHERHEITSRICHTLINIE")
+    expect(Assessment.completed.find_by!(public_id: payload["assessment_id"]).evaluation).to include(overestimation_count: 1, excluded_count: 1)
   end
 
   [ "editing", "review" ].each do |stage|

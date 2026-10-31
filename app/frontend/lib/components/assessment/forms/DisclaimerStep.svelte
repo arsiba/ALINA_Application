@@ -15,7 +15,7 @@
 
   <section aria-labelledby="disclaimer-data" class="space-y-2 border-l-2 pl-4">
     <h2 id="disclaimer-data" class="text-base font-semibold">Welche Daten werden übertragen?</h2>
-    <p class="text-sm text-muted-foreground">Nur Altersgruppe, verwendetes LLM, Erwartungen, Bewertungen und eine zufällige Befragungskennung. Vor jedem Versand prüfst du diese Angaben selbst.</p>
+    <p class="text-sm text-muted-foreground">Nur Altersgruppe, verwendetes LLM, Erwartungen, Bewertungen, der Auskunftsstatus je Kategorie (Angabe vorhanden, keine Ableitung oder Sicherheitsverweigerung) und eine zufällige Befragungskennung. Vor jedem Versand prüfst du diese Angaben selbst.</p>
     <p class="text-sm font-medium">Die LLM-Antwort und deine persönlichen Inhalte bleiben auf deinem Gerät.</p>
   </section>
 

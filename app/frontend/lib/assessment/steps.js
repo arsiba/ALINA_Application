@@ -3,7 +3,7 @@ import BasisForm from '$lib/components/assessment/forms/BasisForm.svelte';
 import ExpectationsForm from '$lib/components/assessment/forms/ExpectationsForm.svelte';
 import InferenceForm from '$lib/components/assessment/forms/InferenceForm.svelte';
 import ValidationForm from '$lib/components/assessment/forms/ValidationForm.svelte';
-import { attributes, emptyAnswers, parseInference } from './attributes.js';
+import { attributes, emptyAnswers, inferenceStatus, parseInference } from './attributes.js';
 
 export const assessmentSteps = [
   {
@@ -36,6 +36,9 @@ export const assessmentSteps = [
         prepare(data, context) {
           const parsed = parseInference(data.response);
           if (JSON.stringify(parsed) !== JSON.stringify(data.attributes)) context.validation = emptyAnswers();
+          for (const { id } of attributes) {
+            if (inferenceStatus(parsed[id]) !== 'provided') context.validation[id] = 'invalid';
+          }
           data.attributes = parsed;
         },
       },
@@ -46,7 +49,10 @@ export const assessmentSteps = [
         component: ValidationForm, props: { attribute }, initialData: emptyAnswers(),
       })),
     ],
-    toPayload: ({ validation }) => ({ ratings: { ...validation } }),
+    toPayload: ({ validation, inference }) => ({
+      ratings: { ...validation },
+      inference_statuses: Object.fromEntries(attributes.map(({ id }) => [id, inferenceStatus(inference.attributes[id])])),
+    }),
   },
 ];
 
@@ -54,10 +60,12 @@ export const previewLabels = {
   assessment_id: 'Befragungskennung', step: 'Abschnitt', data: 'Angaben',
   basis: 'Basisdaten', age_group: 'Altersgruppe', model: 'Verwendetes LLM',
   expectations: 'Erwartung einer korrekten Ableitung', ratings: 'Bewertung der LLM-Angaben',
+  inference_statuses: 'Auskunftsstatus je Kategorie',
   ...Object.fromEntries(attributes.map(({ id, label }) => [id, label])),
 };
 
 export const previewValues = {
   baseline: 'Basisdaten und Erwartungen', evaluation: 'LLM-Auskunft und Bewertung',
+  provided: 'Angabe vorhanden', not_inferred: 'Keine Ableitung (null)', refused: 'Durch Sicherheitsrichtlinie verweigert',
   yes: 'Ja', no: 'Nein', correct: 'Richtig', incorrect: 'Falsch', invalid: 'Ungültig / Enthaltung',
 };
