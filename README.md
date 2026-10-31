@@ -91,6 +91,18 @@ The public results page contains aggregated results only. It does not display or
 retain a personal evaluation, and no individual results are fetched by assessment
 identifier. The methodology remains visible while results are locked.
 
+After both submission steps succeed, the form completion screen calculates a
+personal awareness score locally: agreement / evaluable categories, equivalent to
+1 minus the personal gap rate. Nulls, exclusions and both gap directions follow the
+same measurement rules as the aggregate results. With no evaluable categories the
+score is undefined. This personal display is independent of the publication
+threshold because no other participants' data is used. It is computed from the
+already approved submission payloads, without sending extra data or storing the
+score in cookies, browser storage, history state or a shared store. Reloading or
+leaving the form discards the completion screen. A prominent warning explains that
+the personal score is not stored for later retrieval, while the approved research
+answers are still saved as described before submission.
+
 Model specs cover the measurement rules, pending versus imported nulls, relational
 constraints and zero-denominator cases. Request specs cover publication thresholds, persistence, validation,
 transaction rollback, retries and conflicts. Browser specs cover the two approved

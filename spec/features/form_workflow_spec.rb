@@ -141,7 +141,14 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(submissions[1]["data"].keys).to contain_exactly("ratings", "inference_statuses")
     expect(submissions[1]["data"]["inference_statuses"].values).to eq([ "provided" ] * 8)
     expect(submissions.to_json).not_to include("LOCAL_SECRET", "response", "attributes")
-    expect(page).to have_css("details", count: 2)
+    within('section[aria-labelledby="personal-score-heading"]') do
+      expect(page).to have_css('[data-testid="awareness-score"]', text: "100")
+      expect(page).to have_text("Nur jetzt verfügbar")
+      expect(page).to have_text("nicht separat gespeichert")
+      expect(page).to have_text("Nach dem Neuladen oder Verlassen dieser Seite")
+      expect(page).not_to have_text("LOCAL_SECRET")
+    end
+    expect(page).to have_css('section[aria-label="Gesendete Abschnitte"] details', count: 2)
   end
 
   it "transmits null and safety refusal statuses without exposing inference values" do
@@ -171,10 +178,58 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(payload["data"]["ratings"]).to include("alter" => "invalid", "geschlecht" => "invalid")
     expect(payload.to_json).not_to include("LOCAL_SECRET", "SICHERHEITSRICHTLINIE")
     expect(Assessment.completed.find_by!(public_id: payload["assessment_id"]).evaluation).to include(overestimation_count: 1, excluded_count: 1)
-    click_link "Zur Auswertung"
+    within('section[aria-labelledby="personal-score-heading"]') do
+      expect(page).to have_css('[data-testid="awareness-score"]', text: "85,7")
+      expect(page).to have_text("6 von 7 auswertbaren Kategorien")
+    end
+    click_link "Zur Gesamtauswertung"
     expect(page).to have_text("Das Gesamtbild")
     expect(page).not_to have_text("Deine persönliche Auswertung")
-    expect(page).not_to have_css('[aria-labelledby="personal-heading"]')
+    expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
+  end
+
+  it "shows the score only after final success, independently of the public threshold, and discards it on reload" do
+    allow(Rails.application.config.x).to receive(:results_min_participants).and_return(100)
+    send_baseline
+    fill_in "inference-response", with: AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }.to_json
+    click_button "Weiter"
+    answer_questions("correct")
+    expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
+    page.execute_script("window.deliveryMode = 'error'")
+    click_button "Jetzt senden"
+    expect(page).to have_css('[role="alert"]', text: "HTTP 422")
+    expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
+    page.execute_script("window.deliveryMode = null")
+    click_button "Jetzt senden"
+    expect(page).to have_css('[data-testid="awareness-score"]', text: "100")
+    expect(page).to have_text("Nur jetzt verfügbar")
+    expect(page.evaluate_script("JSON.stringify(window.history.state)")).not_to include("awareness-score", "agreement_count", "LOCAL_SECRET")
+    check_responsive_layout
+    page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
+    page.save_screenshot("/tmp/alina-personal-score-desktop.png")
+    page.driver.browser.manage.window.resize_to(375, 900)
+    page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
+    page.save_screenshot("/tmp/alina-personal-score-mobile.png")
+    page.refresh
+    expect(page).to have_text("Bevor du beginnst")
+    expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
+    expect(page).not_to have_text("LOCAL_SECRET")
+  end
+
+  it "shows an undefined personal score when every answer is excluded" do
+    send_baseline
+    fill_in "inference-response", with: AttributeResponse::CATEGORIES.index_with { "SICHERHEITSRICHTLINIE" }.to_json
+    click_button "Weiter"
+    AttributeResponse::CATEGORIES.each_with_index do |_category, index|
+      expect(page).to have_checked_field("Ungültig / Enthaltung")
+      click_button(index == 7 ? "Abschnitt prüfen" : "Weiter")
+    end
+    click_button "Jetzt senden"
+    within('section[aria-labelledby="personal-score-heading"]') do
+      expect(page).to have_css('[data-testid="awareness-score"]', text: "Nicht berechenbar")
+      expect(page).to have_text("Keine der acht Kategorien ist auswertbar")
+      expect(page).to have_text("8 ausgeschlossen")
+    end
   end
 
   [ "editing", "review" ].each do |stage|

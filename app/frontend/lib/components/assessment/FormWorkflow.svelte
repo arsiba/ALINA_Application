@@ -163,7 +163,7 @@
       <Button class="mt-8 min-h-12 w-full sm:w-auto" variant="outline" href="/">Zur Startseite</Button>
     {:else if stage === 'completed'}
       <p class="mt-4 leading-relaxed text-muted-foreground">Deine Antworten wurden gespeichert. Du findest die gesendeten Angaben unten.</p>
-      {@render completedActions?.()}
+      {@render completedActions?.(sent)}
     {/if}
   </section>
 
