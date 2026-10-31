@@ -6,6 +6,8 @@
   import { toast } from "svelte-sonner";
   import Navbar from "$lib/components/navbar.svelte"; // Adjust the path as necessary
 
+  import CookieBanner from '$lib/components/CookieBanner.svelte';
+
   let { children } = $props();
 
   onMount(initializeTheme);
@@ -20,6 +22,8 @@
 
 <div class="min-h-svh bg-background text-foreground">
   <Navbar />
-  <main>{@render children()}</main>
+  <CookieBanner>
+    <main>{@render children()}</main>
+  </CookieBanner>
   <Toaster />
 </div>

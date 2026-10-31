@@ -203,6 +203,9 @@ RSpec.describe "Assessment workflow", type: :feature do
     click_button "Jetzt senden"
     expect(page).to have_css('[data-testid="awareness-score"]', text: "100")
     expect(page).to have_text("Nur jetzt verfügbar")
+    marker = page.driver.browser.manage.all_cookies.find { |cookie| cookie[:name] == "alina_participated" }
+    expect(marker[:value]).to eq("1")
+    expect(page.evaluate_script("document.cookie")).not_to include("alina_participated")
     expect(page.evaluate_script("JSON.stringify(window.history.state)")).not_to include("awareness-score", "agreement_count", "LOCAL_SECRET")
     check_responsive_layout
     page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
@@ -211,7 +214,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
     page.save_screenshot("/tmp/alina-personal-score-mobile.png")
     page.refresh
-    expect(page).to have_text("Bevor du beginnst")
+    expect(page).to have_text("In diesem Browser wurde bereits teilgenommen")
     expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
     expect(page).not_to have_text("LOCAL_SECRET")
   end

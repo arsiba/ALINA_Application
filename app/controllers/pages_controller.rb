@@ -11,6 +11,10 @@ class PagesController < ApplicationController
     render inertia: "Form"
   end
 
+  def cookie_information
+    render inertia: "Cookies"
+  end
+
   def result
     response.headers["Cache-Control"] = "no-store"
     render inertia: "Result", props: { results: AssessmentResults.call }

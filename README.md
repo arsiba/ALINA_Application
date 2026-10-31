@@ -112,6 +112,55 @@ rates, responsive charts and aggregate-only result navigation. These checks exer
 reproducibility/error handling QA-04–QA-05 from the thesis; they do not replace an
 empirical study of the prompt or a representative awareness survey.
 
+## Participation cookie and legal assessment
+
+After the last successful submission, Rails sets `alina_participated=1` for 30 days.
+The value is identical for every completed browser: no UUID, timestamp, model,
+answers or score is stored in this cookie. It is host-only, HttpOnly, SameSite=Lax,
+and Secure on HTTPS. Neither visits nor idempotent submission retries renew it.
+No marker is set for unfinished or failed submissions. Personalized page props are
+served with `Cache-Control: no-store`.
+
+The marker enforces the study's one-participation rule within the same browser:
+the form shows a completion notice and the submission endpoint returns 409 for new
+assessments or other unfinished assessments. Exact retries for an already completed
+assessment still pass normal payload verification. The cookie is not an identity
+check, is not bound to an assessment UUID, and does not stop deletion, browser
+changes, simultaneous requests before it is received, or deliberate manipulation.
+Shared browsers may also prevent another person from taking part. No IP-based
+fingerprinting or additional participant identifier was introduced.
+
+The banner is informational, with a “Verstanden” button; it is not a consent
+request. Dismissal stays only in JavaScript memory during Inertia navigation and
+sets no cookie or browser-storage entry. The notice can be reopened in the footer.
+`GET /cookies` describes the marker, the existing encrypted Rails security/session
+cookie, retention, purpose, browser controls and the legal assessment. The session
+cookie is separate from the constant participation flag and does contain technical
+session data; it must not be described as having no data at all.
+
+Legal research as of 31 October 2026, scoped to EU/Germany:
+
+- [Section 25 TDDDG](https://www.gesetze-im-internet.de/ttdsg/__25.html) generally
+  requires consent for device storage/access, with a narrow exception for what is
+  strictly necessary for an explicitly requested service (paragraph 2, number 2).
+  This applies even without personally identifiable cookie contents.
+- The [DSK guidance, section III.3.b, especially paragraphs 756–759 and 866–874](https://datenschutzkonferenz-online.de/media/oh/20221130_OH_Telemedien_Version_1.1.pdf)
+  allows consideration of user-oriented fraud prevention but rejects blanket
+  “security cookie” classifications. Purpose, timing, duration, contents and access
+  must each be limited and justified.
+- The implementation's necessity assessment rests on the explicitly required
+  one-participation survey function and an actual server-enforced browser guard,
+  rather than a convenience reminder, audience measurement or research benefit
+  alone. This is a project-specific legal inference, not an authority's ruling on
+  ALINA. Limited effectiveness does not establish strict necessity by itself.
+- Before deployment, the study operator must confirm the applicability of that
+  exception, justify the 30-day duration against the actual collection period and
+  consider the operating jurisdiction. If that assessment does not support the
+  exception, the marker needs a valid consent flow; relabeling it is insufficient.
+  Cookie access law does not determine the separate GDPR legal basis for study
+  responses, operational logs or other personal-data processing. A controller's
+  privacy notice and responsibilities remain necessary.
+
 ## Technology
 
 Built with Ruby on Rails, Svelte, and Inertia.js.
