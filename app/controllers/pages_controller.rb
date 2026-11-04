@@ -3,10 +3,6 @@ class PagesController < ApplicationController
     render inertia: "Home"
   end
 
-  def about
-    render inertia: "About"
-  end
-
   def form
     render inertia: "Form"
   end
