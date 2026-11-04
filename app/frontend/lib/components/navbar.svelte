@@ -2,11 +2,10 @@
   import { page, Link } from '@inertiajs/svelte';
   import Logo from '$lib/components/logo.svelte';
   import { buttonVariants } from '$lib/components/ui/button/index.js';
-  import { rootPath, aboutPath, formPath, resultPath } from '../../routes';
+  import { rootPath, formPath, resultPath } from '../../routes';
 
   const links = [
     { href: rootPath(), label: 'Home' },
-    { href: aboutPath(), label: 'About' },
     { href: formPath(), label: 'Form' },
     { href: resultPath(), label: 'Result' }
   ];
