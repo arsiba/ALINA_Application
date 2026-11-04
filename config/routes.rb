@@ -8,7 +8,6 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   root "pages#home"
-  get "about" => "pages#about", as: :about
   get "form" => "pages#form", as: :form
   post "form/submissions" => "form_submissions#create", as: :form_submissions
   get "cookies" => "pages#cookie_information", as: :cookie_information
