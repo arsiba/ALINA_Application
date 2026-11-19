@@ -178,8 +178,46 @@ bin/test
 ```
 
 Runs linting, security analysis, the production frontend build, Rails checks, and
-RSpec. Chromium tests run when `spec/features` exists. Enable the pre-commit hook
-once per clone with `git config --local core.hooksPath .githooks`.
+RSpec. Chromium tests run when browser specs exist. GitHub Actions runs these checks
+for every push and pull request. The former pre-commit hook has been removed;
+existing clones can clear its configuration with `git config --unset core.hooksPath`.
+
+## CI, images and releases
+
+The [GitHub repository](https://github.com/arsiba/ALINA_Application) is the primary
+remote. CI runs linting, Brakeman, npm vulnerability checks, Rails checks, frontend
+builds, RSpec and Chromium tests. Evaluation reports are also generated when
+`bin/evaluate` exists. Logs and evidence are retained as workflow artifacts for 14 days.
+The production Docker image must build and pass HTTP and asset smoke tests.
+
+Successful pushes to `main` publish `ghcr.io/arsiba/alina_application:main` and
+`sha-<full commit>`. To release a tested commit on `main`, push a version tag:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The tag workflow repeats the checks, validates that the commit belongs to `main`,
+publishes the versioned image and `latest`, then creates a GitHub Release with
+generated notes. Use `vMAJOR.MINOR.PATCH`; `latest` tracks the last released tag.
+Publishing uses the built-in `GITHUB_TOKEN`; no registry password is required.
+Pull requests build and test images without publishing them. Weekly CI reruns
+security checks. Dependabot opens weekly updates for Bundler, npm, Actions and
+Docker; `.npmrc` preserves the existing legacy peer dependency resolution.
+
+Run a published image behind an HTTPS reverse proxy with a persistent SQLite volume:
+
+```sh
+docker run -d -p 8080:80 -v alina-storage:/rails/storage \
+  -e SECRET_KEY_BASE="$(openssl rand -hex 64)" \
+  ghcr.io/arsiba/alina_application:main
+```
+
+Keep `SECRET_KEY_BASE` stable across restarts in your deployment's secret store.
+The container prepares its databases on startup. TLS termination is required by
+Rails' production SSL configuration. Releases publish artifacts; deployment remains
+a separate operational step.
 
 ---
 
