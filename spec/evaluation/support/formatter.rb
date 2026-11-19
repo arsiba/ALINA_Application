@@ -1,5 +1,6 @@
 require "json"
 require "rspec/core/formatters/base_text_formatter"
+require_relative "requirement_assessment"
 
 module Evaluation
   class Formatter < RSpec::Core::Formatters::BaseTextFormatter
@@ -52,6 +53,7 @@ module Evaluation
         status: status, duration_seconds: example.execution_result.run_time,
         location: example.location,
         reason: example.execution_result.pending_message,
+        observations: example.metadata.fetch(:evaluation_observations, []),
         failure: example.exception&.message
       )
       @results << result
@@ -62,6 +64,9 @@ module Evaluation
       output.puts "  Sollverhalten: #{row.fetch('expected')}"
       output.puts "  Ergebnis: #{status} (#{format('%.3f', example.execution_result.run_time)} s)"
       output.puts "  Beobachtung: Alle Assertions des Prüffalls erfüllt." if status == "BESTANDEN"
+      result.fetch(:observations).each do |observation|
+        output.puts "  Messwert: #{observation.fetch('label')} | Soll: #{JSON.generate(observation.fetch('expected'))} | Ist: #{JSON.generate(observation.fetch('actual'))}"
+      end
       output.puts "  Begründung: #{example.execution_result.pending_message}" if example.execution_result.pending_message
       output.puts "  Fehler: #{example.exception.message}" if example.exception
       output.puts "  Aussagegrenze: #{row.fetch('limit')}"
@@ -74,6 +79,7 @@ module Evaluation
       summaries = @requirements.map do |requirement|
         rows = @results.select { |result| result.fetch("requirements").include?(requirement.fetch("id")) }
         counts = rows.map { |row| row.fetch(:status) }.tally
+        classification = RequirementAssessment.classify(counts, scope: requirement.fetch("scope"))
         verdict = if counts.fetch("FEHLGESCHLAGEN", 0).positive?
           "Technische Kriterien nicht vollständig bestanden"
         elsif counts.fetch("AUSSTEHEND", 0).positive?
@@ -86,10 +92,11 @@ module Evaluation
           "Definierte technische Kriterien bestanden"
         end
         output.puts "#{requirement.fetch('id')} – #{requirement.fetch('title')}: #{verdict}"
+        output.puts "  Bewertung im dokumentierten Prüfumfang: #{classification}"
         output.puts "  Prüffälle: #{rows.map { |row| row.fetch('id') }.join(', ')}"
         output.puts "  Status: #{counts.map { |key, value| "#{value} #{key}" }.join('; ')}"
         output.puts "  Einordnung: #{requirement.fetch('limit')}"
-        requirement.merge(verdict: verdict, counts: counts, cases: rows.map { |row| row.fetch("id") })
+        requirement.merge(classification: classification, verdict: verdict, counts: counts, cases: rows.map { |row| row.fetch("id") })
       end
       output.puts "\n=== Gesamtergebnis ==="
       @results.map { |row| row.fetch(:status) }.tally.each { |status, count| output.puts "#{status}: #{count}" }

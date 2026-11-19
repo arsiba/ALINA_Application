@@ -34,17 +34,29 @@ MD
 counts.each { |key, value| text << "| #{key} | #{value} |\n" }
 text << "\nAusführungsdauer der RSpec-Tests: #{format('%.3f', report.fetch('duration_seconds'))} Sekunden. Diese Dauer ist keine Performancekennzahl der Anwendung.\n"
 text << "\nDie Node-Tests werden durch einzelne RSpec-Beispiele aufgerufen und sind in diesen Zahlen bereits enthalten. Die vier MAN-Fälle sind ausdrücklich nicht untersuchte Nachweise; sie werden nicht zu den bestandenen automatisierten Fällen gezählt.\n"
-text << "\n## Einordnung je Anforderung\n\n| ID | Anforderung | Beobachteter Status | Reichweite |\n|---|---|---|---|\n"
+text << "\n## Einordnung je Anforderung\n\nBewertungen gelten für den dokumentierten Prüfumfang. Technische Nachweise ersetzen keine offenen empirischen Untersuchungen.\n\n| ID | Anforderung | Bewertung | Beobachteter Status | Reichweite |\n|---|---|---|---|---|\n"
 report.fetch("requirements").each do |row|
-  values = [ row.fetch("id"), row.fetch("title"), "#{row.fetch('verdict')} (#{row.fetch('counts').map { |key, value| "#{value} #{key}" }.join('; ')})", row.fetch("limit") ]
+  values = [ row.fetch("id"), row.fetch("title"), row.fetch("classification"), "#{row.fetch('verdict')} (#{row.fetch('counts').map { |key, value| "#{value} #{key}" }.join('; ')})", row.fetch("limit") ]
   text << "| #{values.map { |value| value.gsub('|', '\\|').gsub("\n", '<br>') }.join(' | ')} |\n"
+end
+text << "\n## Protokollierte Soll- und Istwerte\n\nDie folgenden Werte werden aus den tatsächlich geprüften Ergebnissen übernommen. Fehlende Werte bei anderen Fällen bedeuten, dass dort nur der Assertion-Prüfstatus dokumentiert wird.\n"
+report.fetch("cases").each do |row|
+  observations = row.fetch("observations", [])
+  next if observations.empty?
+
+  text << "\n### #{row.fetch('id')}: #{row.fetch('title')}\n\n| Messgröße | Soll | Ist |\n|---|---|---|\n"
+  observations.each do |observation|
+    values = [ observation.fetch("label"), JSON.generate(observation.fetch("expected")), JSON.generate(observation.fetch("actual")) ]
+    text << "| #{values.map { |value| value.gsub('|', '\\|').gsub("\n", '<br>') }.join(' | ')} |\n"
+  end
 end
 text << "\n## Offene Nachweise\n\n"
 report.fetch("cases").select { |row| row.fetch("status") == "NICHT UNTERSUCHT" }.each do |row|
   text << "- **#{row.fetch('id')}: #{row.fetch('title')}** – #{row.fetch('reason')}\n"
 end
 text << "\n## Verwendung in der Arbeit\n\n"
-text << "Die Ergebnisse belegen die Erfüllung der definierten technischen Prüfkriterien in der dokumentierten Umgebung. Sie rechtfertigen keine pauschale Gleichsetzung von Testbestehen und vollständiger Erfüllung aller Qualitätsanforderungen. Die Auswertung beruht auf synthetischen Fällen und fest vorgegebenen Sollwerten.\n\n"
+conclusion = counts.fetch("FEHLGESCHLAGEN", 0).positive? || counts.fetch("AUSSTEHEND", 0).positive? ? "Die technische Prüfung ist nicht vollständig bestanden; die betroffenen Fälle und Anforderungen sind im Bericht ausgewiesen." : "Die Ergebnisse belegen die Erfüllung der definierten technischen Prüfkriterien in der dokumentierten Umgebung."
+text << "#{conclusion} Sie rechtfertigen keine pauschale Gleichsetzung von Testbestehen und vollständiger Erfüllung aller Qualitätsanforderungen. Die Auswertung beruht auf synthetischen Fällen und fest vorgegebenen Sollwerten.\n\n"
 text << "Für Methoden und Kriterien die versionierte Datei `spec/evaluation/KRITERIEN.md` und die zugehörige README heranziehen. Für den Anhang `protocol.txt` verwenden; die strukturierten Dateien und den Softwarestand zusammen archivieren. Screenshots sind ergänzende, nicht automatisch visuell bewertete Artefakte.\n"
 File.write(File.join(output, "AUSWERTUNG.md"), text)
 puts "Softwarestand am Laufende unverändert bestätigt."

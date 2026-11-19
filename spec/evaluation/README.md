@@ -18,7 +18,7 @@ Die Ausführung erfolgt in definierter Reihenfolge, nicht parallel. Die Browserp
 
 | Datei im Ergebnisordner | Verwendung |
 |---|---|
-| `AUSWERTUNG.md` | Beobachtete Gesamtzahlen und Einordnung jeder Anforderung für das Ergebniskapitel; ausdrücklich getrennt vom Prüfplan. |
+| `AUSWERTUNG.md` | Beobachtete Gesamtzahlen, Soll-/Istwerttabellen und Einordnung jeder Anforderung für das Ergebniskapitel; ausdrücklich getrennt vom Prüfplan. |
 | `protocol.txt` | Lesbares Konsolenprotokoll für den Anhang: Umgebung, Abschnitte, Test-IDs, Anforderungen, Eingaben, Sollverhalten, beobachteter Prüfstatus, Laufzeiten und Nachweisgrenzen. |
 | `evaluation.json` | Strukturierte fachliche Ergebnisse pro Test und Anforderung mit Status, Dauer und gegebenenfalls Fehler bzw. Grund für fehlenden Nachweis. |
 | `rspec.json` | RSpec-Rohbericht einschließlich der tatsächlichen Example-Positionen und Fehlerdetails. |
@@ -37,7 +37,7 @@ Die Ergebnisordner liegen im bereits ignorierten `tmp/`. Für die endgültige Ab
 | `services/` | Aggregation, Gewichtung, Instrumentversion und Gruppenfreigabe. |
 | `requests/` | HTTP-Schnittstelle, Persistenz, Validierung, Atomarität, Wiederholungen, Logs und Teilnahmeflag. |
 | `browser/` | Vollständiger JavaScript-Ablauf, Import, Bewertung, Datenvorschau, Fehler, Abbruch, Ergebnisansicht und Layout. |
-| `frontend/` | Direkte Tests des JavaScript-Parsers, Prompts und persönlichen Scores. `javascript_spec.rb` startet je Kriterium genau einen Node-Test und übernimmt dessen Ergebnis in RSpec. |
+| `frontend/` | Direkte Tests des JavaScript-Parsers, Prompts und persönlichen Scores. `javascript_spec.rb` startet je Kriterium genau einen Node-Test und übernimmt dessen Ergebnis und Soll-/Istdiagnostik in RSpec. Der Node-Runner verwendet keine zusätzliche Prozessisolation. Der Wrapper verlangt den namentlich passenden Subtest, genau einen bestandenen Test und mindestens einen tatsächlichen Messwert; ein bloß erfolgreich gestartetes Testdatei-Modul genügt nicht. Benötigt wird Node.js ab 22.8 mit Unterstützung für `--experimental-test-isolation=none`. |
 | `configuration/` | Gültige und ungültige Freigabeschwellen. |
 | `limitations/` | Vier ausdrücklich nicht untersuchte Nachweise als übersprungene, begründete RSpec-Beispiele. |
 | `fixtures/` | Eingefrorener Referenzprompt für Instrumentversion 1. Bei fachlichen Änderungen Instrumentversion und Referenz bewusst gemeinsam prüfen. |
@@ -47,11 +47,11 @@ Die Ergebnisordner liegen im bereits ignorierten `tmp/`. Für die endgültige Ab
 
 ## Was das Protokoll tatsächlich beobachtet
 
-Der Formatter gibt für jeden Prüffall Sollverhalten und Ergebnis aus. „BESTANDEN“ bedeutet, dass alle im Beispiel ausgeführten Assertions erfüllt wurden. Das ist ein beobachtetes Pass/Fail-Ergebnis; der Formatter behauptet keine zusätzlich gemessenen Zahlen. Die angegebenen Kennzahlen sind feste Sollwerte, mit denen die Implementierung verglichen wird. Bei Fehlern erscheinen die tatsächliche Assertion-Fehlermeldung und im RSpec-JSON weitere Details.
+Der Formatter gibt für jeden Prüffall Sollverhalten und Ergebnis aus. „BESTANDEN“ bedeutet, dass alle im Beispiel ausgeführten Assertions erfüllt wurden. Bei den numerischen Referenzprüfungen und den JavaScript-Tests werden zusätzlich die tatsächlichen Rückgabewerte und die davon getrennten Sollwerte vor der Assertion als unveränderliche JSON-Snapshots erfasst. Diese Werte erscheinen in der Konsole, in `evaluation.json` und als Tabellen in `AUSWERTUNG.md`. Auch ein abweichender Istwert bleibt bei einer fehlgeschlagenen Assertion erhalten. Andere Assertions liefern weiterhin einen Prüfstatus statt zusätzlicher Istwerttabellen. Bei Fehlern erscheinen die tatsächliche Assertion-Fehlermeldung und im RSpec-JSON weitere Details.
 
-„NICHT UNTERSUCHT“ ist ein fehlender Nachweis und kein bestandener Test. Die vier MAN-Fälle werden mit Begründung übersprungen. Der Runner darf bei diesen dokumentierten Grenzen erfolgreich enden. Ein Fehler in einem automatisierten Prüffall führt zu einem Exitcode ungleich null. Das bloße Bestehen der technischen Kriterien wird in der Anforderungsübersicht von nur teilweise geprüften Qualitätsanforderungen unterschieden. Vollständigkeit und Eindeutigkeit der Test-IDs werden gegen den Katalog geprüft; der spezielle Formatter ist deshalb für vollständige Läufe vorgesehen.
+„NICHT UNTERSUCHT“ ist ein fehlender Nachweis und kein bestandener Test. Die vier MAN-Fälle werden mit Begründung übersprungen. Der Runner darf bei diesen dokumentierten Grenzen erfolgreich enden. Ein Fehler in einem automatisierten Prüffall führt zu einem Exitcode ungleich null. Auch bei fehlgeschlagenen Beispielen werden die Ergebnistabelle und die Integritätsprüfung erzeugt, sofern RSpec den fachlichen Bericht vollständig erzeugen konnte. Der Fehlerstatus wird anschließend unverändert zurückgegeben. Die Anforderungsübersicht enthält zusätzlich die vier Kategorien `erfüllt`, `teilweise erfüllt`, `nicht erfüllt` und `nicht untersucht`. Diese gelten ausdrücklich im dokumentierten Prüfumfang. Ein fehlgeschlagenes zugeordnetes technisches Kriterium führt zu `nicht erfüllt`; ohne bestandenen technischen Nachweis lautet die Kategorie `nicht untersucht`; offene technische Tests oder als teilweise prüfbar definierte Anforderungen werden bei vorhandenen bestandenen Kriterien als `teilweise erfüllt` eingeordnet. Bei vollständig bestandenen technischen Kriterien lautet sie `erfüllt`. Die ausführliche Einordnung und Aussagegrenze bleiben daneben sichtbar. Ergänzende MAN-Fälle können mehrere Anforderungen betreffen und sind weiterhin ausdrücklich offen; insbesondere ersetzt die technische Erfüllung von Promptbereitstellung und Import nicht den echten LLM-Durchlauf. Vollständigkeit und Eindeutigkeit der Test-IDs werden gegen den Katalog geprüft; der spezielle Formatter ist deshalb für vollständige Läufe vorgesehen.
 
-Die Datenflussprüfung erfasst die vom Workflow verwendeten `fetch`-Requests, prüft sichtbare Vorschauen, Serverantworten, gespeicherte Datensätze und relevante Rails-Anwendungslogs. Das ist keine vollständige Untersuchung sämtlicher Netzwerkkanäle, Browsererweiterungen oder Hosting-/Proxylogs. Bei Fehler- und Abbruchfällen wird die Kommunikation teilweise gezielt simuliert; dies ist im Testfall benannt. Die Rails-Testumgebung deaktiviert die CSRF-Prüfung.
+Die Datenflussprüfung erfasst die vom Workflow verwendeten `fetch`-Requests, prüft sichtbare Vorschauen, Serverantworten, gespeicherte Datensätze und relevante Rails-Anwendungslogs. FLOW-14 prüft denselben synthetischen Inferenzmarker im erfolgreichen vollständigen Browserablauf gegen Requests, Datensätze und die parallel erfassten Rails-Logs. Der Test verlangt zusätzlich vorhandene Controller- und Filtereinträge, damit ein leerer Logpuffer nicht als bestandene Prüfung zählt. Das ist keine vollständige Untersuchung sämtlicher Netzwerkkanäle, Browsererweiterungen oder Hosting-/Proxylogs. Bei Fehler- und Abbruchfällen wird die Kommunikation teilweise gezielt simuliert; dies ist im Testfall benannt. Die Rails-Testumgebung deaktiviert die CSRF-Prüfung.
 
 ## Messregeln und unabhängige Sollwerte
 
@@ -134,6 +134,14 @@ Neue Kriterien erhalten eine stabile, eindeutige ID. Testbeschreibung beginnt mi
 
 ```bash
 ruby spec/evaluation/support/documentation.rb
+```
+
+Die zehn fachlich gültigen Kombinationen aus binärer Erwartung und Antwortstatus/Bewertung stehen mit festen Sollwerten in `fixtures/measurement_cases.json`. MOD-07 und JS-25 prüfen diese Tabelle im Backend und Frontend, jeweils für acht identische Kategorieantworten. Dadurch werden insbesondere auch unerwartete falsche Angaben sowie Ausschlüsse bei beiden Erwartungswerten geprüft.
+
+Die fünf Infrastrukturtests in `support/reporting_checks.rb` werden separat durch `bin/test` ausgeführt. Sie prüfen Snapshot-Unveränderlichkeit, Erhalt abweichender Istwerte, Bewertungskategorien und die Ausgabe/Serialisierung sowie das Ergebnisdokument eines fehlgeschlagenen Falls. Sie zählen nicht als zusätzliche wissenschaftliche Evaluationsfälle. Separater Aufruf:
+
+```bash
+bundle exec rspec spec/evaluation/support/reporting_checks.rb
 ```
 
 Die Test-ID wird bei fachlichen Erweiterungen nicht umnummeriert. Änderungen an Sollwerten oder am Referenzprompt müssen fachlich begründet werden; eine Anpassung nur zur Beseitigung eines fehlgeschlagenen Tests ist kein Evaluationsnachweis.

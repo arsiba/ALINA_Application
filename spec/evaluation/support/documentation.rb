@@ -11,7 +11,7 @@ text = <<~MD
 
   Diese Matrix operationalisiert die funktionalen Anforderungen FA-01 bis FA-13 und Qualitätsanforderungen QA-01 bis QA-07 aus Kapitel 3.2/3.3 der Arbeit. Die Nummern folgen der dortigen Reihenfolge. DS-01 bis DS-03 konkretisieren zusätzlich den Prüfbereich Datenfluss aus Kapitel 6.1. DS-04 dokumentiert ergänzend das implementierte Teilnahmeflag; es ist keine zusätzliche ursprüngliche Qualitätsanforderung.
 
-  **Dies ist der Prüfplan, kein Ergebnisprotokoll.** Beobachtete Ergebnisse und Fehler stehen erst nach einem Lauf in `protocol.txt` und `evaluation.json`. Ein bestandener Fall bestätigt seine Assertions für die angegebenen Eingaben. Offene empirische Nachweise stehen als MAN-Fälle ausdrücklich im Katalog.
+  **Dies ist der Prüfplan, kein Ergebnisprotokoll.** Beobachtete Ergebnisse und Fehler stehen erst nach einem Lauf in `protocol.txt` und `evaluation.json`; die numerischen Referenzfälle und JavaScript-Prüfungen enthalten zusätzlich getrennt erfasste Soll-/Istwerte. Ein bestandener Fall bestätigt seine Assertions für die angegebenen Eingaben. Offene empirische Nachweise stehen als MAN-Fälle ausdrücklich im Katalog.
 
   ## Anforderungen und Nachweisgrenzen
 
