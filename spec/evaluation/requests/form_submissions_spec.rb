@@ -12,7 +12,7 @@ RSpec.describe "Form submissions", type: :request do
     post "/form/submissions", params: { assessment_id: id, step: step, data: data }, as: :json
   end
 
-  it "stores the bundled basis and all expectations" do
+  it "[REQ-01] Basisdaten und Erwartungen gemeinsam persistieren" do
     expect { submit("baseline", baseline) }.to change(Assessment, :count).by(1).and change(AttributeResponse, :count).by(8)
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body).to eq("accepted" => true, "step" => "baseline")
@@ -21,7 +21,7 @@ RSpec.describe "Form submissions", type: :request do
     expect(assessment.attribute_responses.pluck(:expectation)).to eq([ "yes" ] * 8)
   end
 
-  it "stores nulls, refusals and uncheckable answers separately" do
+  it "[REQ-02] Nicht-Ableitung, Verweigerung und Enthaltung getrennt speichern" do
     submit("baseline", baseline)
     ratings.merge!("alter" => "invalid", "geschlecht" => "invalid", "beruf" => "invalid")
     statuses.merge!("alter" => "not_inferred", "geschlecht" => "refused")
@@ -31,7 +31,7 @@ RSpec.describe "Form submissions", type: :request do
     expect(assessment.evaluation).to include(not_inferred_count: 1, refused_count: 1, invalid_count: 1, overestimation_count: 1, evaluable_count: 6)
   end
 
-  it "accepts identical retries without duplicating or changing saved data and completion time" do
+  it "[REQ-03] Identische Wiederholungen idempotent verarbeiten" do
     submit("baseline", baseline)
     first = Assessment.find_by!(public_id: assessment_id)
     expect { submit("baseline", baseline, id: assessment_id.upcase) }.not_to change(AttributeResponse, :count)
@@ -46,7 +46,7 @@ RSpec.describe "Form submissions", type: :request do
     expect(Assessment.count).to eq(1)
   end
 
-  it "rejects overwriting baseline or completed evaluation" do
+  it "[REQ-04] Bereits gespeicherte Antworten vor Überschreiben schützen" do
     submit("baseline", baseline)
     changed = baseline.deep_dup
     changed[:expectations]["alter"] = "no"
@@ -59,14 +59,14 @@ RSpec.describe "Form submissions", type: :request do
     expect(AttributeResponse.find_by!(category: "alter").rating).to eq("correct")
   end
 
-  it "rejects evaluation without an existing baseline" do
+  it "[REQ-05] Bewertung ohne Basis ablehnen" do
     submit("evaluation", evaluation)
     expect(response).to have_http_status(:not_found)
     expect(Assessment.count).to eq(0)
     expect(AttributeResponse.count).to eq(0)
   end
 
-  it "rejects incomplete expectations and unknown categories without partial writes" do
+  it "[REQ-06] Unvollständige und unbekannte Kategorien atomar ablehnen" do
     expectations.delete("alter")
     submit("baseline", baseline)
     expect(response).to have_http_status(422)
@@ -77,13 +77,13 @@ RSpec.describe "Form submissions", type: :request do
     expect(AttributeResponse.count).to eq(0)
   end
 
-  it "rejects invalid basis values" do
+  it "[REQ-07] Unzulässiges LLM in Basisdaten ablehnen" do
     baseline[:basis][:model] = "unexpected"
     submit("baseline", baseline)
     expect(response).to have_http_status(422)
   end
 
-  it "rejects malformed or inconsistent evaluation without changing any responses" do
+  it "[REQ-08] Ungültige Bewertungsstrukturen ohne Änderung ablehnen" do
     submit("baseline", baseline)
     [
       { ratings: ratings },
@@ -100,7 +100,7 @@ RSpec.describe "Form submissions", type: :request do
     end
   end
 
-  it "rolls back every answer if persistence fails partway through evaluation" do
+  it "[REQ-09] Bei Speicherfehler den gesamten Bewertungsabschnitt zurückrollen" do
     submit("baseline", baseline)
     allow_any_instance_of(AttributeResponse).to receive(:update!).and_wrap_original do |method, *args|
       raise ActiveRecord::RecordInvalid.new(method.receiver) if method.receiver.category == "einkommen"
@@ -112,7 +112,7 @@ RSpec.describe "Form submissions", type: :request do
     expect(Assessment.completed).to be_empty
   end
 
-  it "rejects raw LLM answers and unexpected baseline fields" do
+  it "[REQ-10] Zusätzliche konkrete Inferenzdaten serverseitig ablehnen" do
     submit("baseline", baseline.merge(inference: { alter: "LOCAL_SECRET" }))
     expect(response).to have_http_status(422)
     submit("baseline", baseline)
@@ -120,23 +120,43 @@ RSpec.describe "Form submissions", type: :request do
     expect(response).to have_http_status(422)
   end
 
-  it "filters submitted and rejected data from request logs" do
+  it "[REQ-11] Parameterfilter für sensible Requestdaten prüfen" do
     filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
     filtered = filter.filter("data" => { "inference" => "LOCAL_SECRET" }, "assessment_id" => assessment_id)
     expect(filtered.values).to eq([ "[FILTERED]", "[FILTERED]" ])
   end
 
-  it "rejects invalid assessment identifiers" do
+  it "[REQ-12] Ungültige Befragungskennungen zurückweisen" do
     [ "invalid", nil, [], {} ].each do |id|
       submit("baseline", baseline, id: id)
       expect(response).to have_http_status(422)
     end
   end
 
-  it "rejects unknown steps and invalid data structures" do
+  it "[REQ-13] Unbekannte Schritte und falsche Datenstrukturen zurückweisen" do
     [ [ "unknown", baseline ], [ "baseline", "invalid" ], [ "evaluation", { ratings: [] } ], [ "baseline", nil ] ].each do |step, data|
       submit(step, data)
       expect(response).to have_http_status(422)
+    end
+  end
+
+  it "[REQ-14] Tatsächliche Rails-Requestlogs enthalten keine gesendeten Inferenzmarker" do
+    buffer = StringIO.new
+    logger = ActiveSupport::Logger.new(buffer)
+    Rails.logger.broadcast_to(logger)
+    begin
+      submit("baseline", baseline.merge(inference: { alter: "EVAL_LOG_SECRET_9384" }))
+      expect(response).to have_http_status(422)
+      submit("baseline", baseline)
+      expect(response).to have_http_status(:ok)
+      expect(buffer.string).to include("FormSubmissionsController", "[FILTERED]")
+      expect(buffer.string).not_to include("EVAL_LOG_SECRET_9384")
+      parameter_lines = buffer.string.lines.grep(/Parameters:/).join
+      expect(parameter_lines).to include("[FILTERED]")
+      expect(parameter_lines).not_to include("EVAL_LOG_SECRET_9384", assessment_id)
+      expect(Assessment.all.map(&:attributes).to_json + AttributeResponse.all.map(&:attributes).to_json).not_to include("EVAL_LOG_SECRET_9384")
+    ensure
+      Rails.logger.stop_broadcasting_to(logger)
     end
   end
 end

@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+if (( $# > 0 )); then
+  printf 'Aufruf: bin/evaluate (vollständige anforderungsbasierte Evaluation)\n' >&2
+  exit 2
+fi
+for tool in ruby bundle node npm git; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf 'Fehlende Voraussetzung: %s\n' "$tool" >&2
+    exit 1
+  fi
+done
+for tool in node_modules/.bin/vite /usr/bin/chromium /usr/bin/chromedriver; do
+  if [[ ! -x "$tool" ]]; then
+    printf 'Fehlende Voraussetzung: %s (siehe spec/evaluation/README.md)\n' "$tool" >&2
+    exit 1
+  fi
+done
+export RAILS_ENV=test
+export RACK_ENV=test
+export CI=true
+export BUNDLE_FROZEN=true
+export VITE_RUBY_AUTO_BUILD=false
+export VITE_RUBY_PUBLIC_OUTPUT_DIR=vite
+export VITE_RUBY_DEV_SERVER_CONNECTION_CHECK=false
+mkdir -p tmp/evaluation
+EVALUATION_OUTPUT_DIR="$(mktemp -d "$PWD/tmp/evaluation/$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
+export EVALUATION_OUTPUT_DIR
+printf 'Evaluationsprotokoll: %s/protocol.txt\n' "$EVALUATION_OUTPUT_DIR"
+step='Vorbereitung'
+trap 'status=$?; printf "\nEvaluation fehlgeschlagen: %s (Exit %s). Dateien: %s\n" "$step" "$status" "$EVALUATION_OUTPUT_DIR" >&2; exit "$status"' ERR
+prepare() {
+  bundle check || return $?
+  env RAILS_ENV=production RACK_ENV=production npm run build || return $?
+  bin/rails db:prepare || return $?
+}
+printf 'Prüfe Abhängigkeiten, baue Frontend und bereite Testdatenbank vor …\n'
+if prepare > "$EVALUATION_OUTPUT_DIR/setup.log" 2>&1; then
+  printf 'Vorbereitung abgeschlossen.\n'
+else
+  cat "$EVALUATION_OUTPUT_DIR/setup.log" >&2
+  exit 1
+fi
+step='Umgebungsnachweis'
+bundle exec ruby spec/evaluation/support/environment.rb 2>&1 | tee "$EVALUATION_OUTPUT_DIR/protocol.txt"
+step='RSpec-Evaluation'
+if bundle exec rspec spec/evaluation --order defined --no-color \
+  --require ./spec/evaluation/support/formatter.rb \
+  --format Evaluation::Formatter \
+  --format json --out "$EVALUATION_OUTPUT_DIR/rspec.json" \
+  2>&1 | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"; then
+  evaluation_status=0
+else
+  evaluation_status=$?
+fi
+if [[ ! -f "$EVALUATION_OUTPUT_DIR/evaluation.json" ]]; then
+  printf 'Kein vollständiger fachlicher Bericht erzeugt. Siehe protocol.txt.\n' >&2
+  exit 1
+fi
+step='Ergebnisdokumentation und Integrität des Softwarestands'
+bundle exec ruby spec/evaluation/support/result_documentation.rb 2>&1 | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+printf '\nEvaluation abgeschlossen (Exit %s). Protokoll und strukturierte Ergebnisse: %s\n' "$evaluation_status" "$EVALUATION_OUTPUT_DIR" | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+printf 'Nicht untersuchte Nachweise bleiben ausdrücklich offen; siehe Anforderungsübersicht.\n' | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+exit "$evaluation_status"

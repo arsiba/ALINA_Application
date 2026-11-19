@@ -1,0 +1,172 @@
+[
+  {
+    "id": "REF-01",
+    "expectation": "yes",
+    "inference_status": "provided",
+    "rating": "correct",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": 0.0,
+      "underestimation_rate": 0.0,
+      "overestimation_rate": 0.0,
+      "score": 1.0,
+      "agreement_count": 8
+    }
+  },
+  {
+    "id": "REF-02",
+    "expectation": "no",
+    "inference_status": "provided",
+    "rating": "correct",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 8,
+      "overestimation_count": 0,
+      "gap_rate": 1.0,
+      "underestimation_rate": 1.0,
+      "overestimation_rate": 0.0,
+      "score": 0.0,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-03",
+    "expectation": "yes",
+    "inference_status": "provided",
+    "rating": "incorrect",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 0,
+      "overestimation_count": 8,
+      "gap_rate": 1.0,
+      "underestimation_rate": 0.0,
+      "overestimation_rate": 1.0,
+      "score": 0.0,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-04",
+    "expectation": "no",
+    "inference_status": "provided",
+    "rating": "incorrect",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": 0.0,
+      "underestimation_rate": 0.0,
+      "overestimation_rate": 0.0,
+      "score": 1.0,
+      "agreement_count": 8
+    }
+  },
+  {
+    "id": "REF-05",
+    "expectation": "yes",
+    "inference_status": "provided",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 0,
+      "excluded_count": 8,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": null,
+      "underestimation_rate": null,
+      "overestimation_rate": null,
+      "score": null,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-06",
+    "expectation": "no",
+    "inference_status": "provided",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 0,
+      "excluded_count": 8,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": null,
+      "underestimation_rate": null,
+      "overestimation_rate": null,
+      "score": null,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-07",
+    "expectation": "yes",
+    "inference_status": "not_inferred",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 0,
+      "overestimation_count": 8,
+      "gap_rate": 1.0,
+      "underestimation_rate": 0.0,
+      "overestimation_rate": 1.0,
+      "score": 0.0,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-08",
+    "expectation": "no",
+    "inference_status": "not_inferred",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 8,
+      "excluded_count": 0,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": 0.0,
+      "underestimation_rate": 0.0,
+      "overestimation_rate": 0.0,
+      "score": 1.0,
+      "agreement_count": 8
+    }
+  },
+  {
+    "id": "REF-09",
+    "expectation": "yes",
+    "inference_status": "refused",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 0,
+      "excluded_count": 8,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": null,
+      "underestimation_rate": null,
+      "overestimation_rate": null,
+      "score": null,
+      "agreement_count": 0
+    }
+  },
+  {
+    "id": "REF-10",
+    "expectation": "no",
+    "inference_status": "refused",
+    "rating": "invalid",
+    "expected": {
+      "evaluable_count": 0,
+      "excluded_count": 8,
+      "underestimation_count": 0,
+      "overestimation_count": 0,
+      "gap_rate": null,
+      "underestimation_rate": null,
+      "overestimation_rate": null,
+      "score": null,
+      "agreement_count": 0
+    }
+  }
+]

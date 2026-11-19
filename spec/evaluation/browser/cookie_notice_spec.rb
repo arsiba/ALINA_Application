@@ -4,12 +4,13 @@ require_relative "../support/browser"
 RSpec.describe "Cookie notice", type: :feature do
   before do
     Capybara.current_driver = :assessment_chrome
+    resize_evaluation_viewport(1280)
     visit "/"
   end
 
   after { Capybara.use_default_driver }
 
-  it "informs before participation and keeps acknowledgement out of cookies and browser storage" do
+  it "[NOTICE-01] Cookiehinweis ohne zusätzliche Browserpersistenz bestätigen" do
     expect(page).to have_css('section[aria-labelledby="cookie-heading"]')
     within('section[aria-labelledby="cookie-heading"]') do
       expect(page).to have_text("Technisch notwendige Cookies")
@@ -30,7 +31,7 @@ RSpec.describe "Cookie notice", type: :feature do
     expect(page).to have_css('section[aria-labelledby="cookie-heading"]')
   end
 
-  it "provides a keyboard-accessible way to reopen the notice and explains its legal basis" do
+  it "[NOTICE-02] Cookiehinweis erneut öffnen und Fokusübergabe prüfen" do
     click_button "Verstanden"
     click_button "Cookie-Hinweis anzeigen"
     expect(page).to have_css('section[aria-labelledby="cookie-heading"]')
@@ -44,15 +45,15 @@ RSpec.describe "Cookie notice", type: :feature do
     expect(page).to have_text("Browser, nicht auf eine identifizierte Person")
   end
 
-  it "fits desktop and narrow mobile screens without covering the page" do
+  it "[NOTICE-03] Cookiehinweis bei schmalen und breiten Fenstern prüfen" do
     [ 320, 375, 768, 1280 ].each do |width|
-      page.driver.browser.manage.window.resize_to(width, 900)
+      resize_evaluation_viewport(width)
       expect(page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")).to be(true)
     end
-    page.save_screenshot("/tmp/alina-cookie-notice-desktop.png")
-    page.driver.browser.manage.window.resize_to(375, 900)
-    page.save_screenshot("/tmp/alina-cookie-notice-mobile.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-cookie-notice-desktop.png"))
+    resize_evaluation_viewport(375)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-cookie-notice-mobile.png"))
     page.execute_script("document.querySelectorAll('nav a').forEach(link => { link.style.transition = 'none'; }); document.documentElement.classList.add('dark')")
-    page.save_screenshot("/tmp/alina-cookie-notice-dark.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-cookie-notice-dark.png"))
   end
 end
