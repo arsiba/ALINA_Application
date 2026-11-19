@@ -8,13 +8,13 @@ RSpec.describe "Results configuration" do
     Rails.application.config.x.results_min_participants = original
   end
 
-  it "uses the configured positive integer" do
+  it "[CFG-01] Positive ganzzahlige Freigabeschwelle übernehmen" do
     allow(ENV).to receive(:fetch).with("RESULTS_MIN_PARTICIPANTS", "10").and_return("27")
     load Rails.root.join("config/initializers/results.rb")
     expect(Rails.application.config.x.results_min_participants).to eq(27)
   end
 
-  it "rejects invalid settings rather than silently disabling the publication gate" do
+  it "[CFG-02] Ungültige Freigabeschwellen beim Start zurückweisen" do
     [ "0", "-1", "1.5", "invalid", "" ].each do |value|
       allow(ENV).to receive(:fetch).with("RESULTS_MIN_PARTICIPANTS", "10").and_return(value)
       expect { load Rails.root.join("config/initializers/results.rb") }.to raise_error(ArgumentError)

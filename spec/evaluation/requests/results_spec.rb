@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Results", type: :request do
-  it "serves only the locked state below the configured threshold, including for Inertia requests" do
+  it "[OUT-01] Gesperrte Ergebnisse auch im HTTP-Payload schützen" do
     allow(Rails.application.config.x).to receive(:results_min_participants).and_return(37)
     get "/result", headers: { "X-Inertia" => "true", "X-Inertia-Version" => ViteRuby.digest }
     expect(response).to have_http_status(:ok)
@@ -11,11 +11,11 @@ RSpec.describe "Results", type: :request do
     expect(response.headers["Cache-Control"]).to include("no-store")
   end
 
-  it "does not accept query parameters to lower the threshold or request individual results" do
+  it "[OUT-02] Freigabeschwelle nicht durch URL-Parameter umgehen lassen" do
     get "/result", params: { minimum_participants: 0, assessment_id: SecureRandom.uuid, model: "ChatGPT" }, headers: { "X-Inertia" => "true", "X-Inertia-Version" => ViteRuby.digest }
     expect(response.parsed_body.fetch("props").fetch("results").keys).to contain_exactly("available", "minimum_participants", "instrument_version")
   end
-  it "omits small and complementary age groups from the actual Inertia response" do
+  it "[OUT-03] Kleine und ergänzende Altersgruppen aus Serverantwort entfernen" do
     allow(Rails.application.config.x).to receive(:results_min_participants).and_return(2)
     { "18–24" => 1, "25–34" => 2, "35–44" => 3 }.each do |age_group, count|
       count.times do

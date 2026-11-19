@@ -182,6 +182,10 @@ RSpec. Chromium tests run when browser specs exist. GitHub Actions runs these ch
 for every push and pull request. The former pre-commit hook has been removed;
 existing clones can clear its configuration with `git config --unset core.hooksPath`.
 
+Run `bin/evaluate` for the requirement-based evaluation report; see the
+[evaluation documentation](spec/evaluation/README.md) and
+[criteria matrix](spec/evaluation/KRITERIEN.md).
+
 ## CI, images and releases
 
 The [GitHub repository](https://github.com/arsiba/ALINA_Application) is the primary

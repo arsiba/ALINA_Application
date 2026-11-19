@@ -14,7 +14,7 @@ RSpec.describe "Participation cookies", type: :request do
     Array(response.headers["Set-Cookie"]).find { |header| header.start_with?("#{status_key}=") }
   end
 
-  it "sets no participation cookie on a first visit and exposes only the boolean status" do
+  it "[COOKIE-01] Erstbesuch ohne Teilnahmecookie und mit booleschem Status" do
     get "/cookies", headers: { "X-Inertia" => "true", "X-Inertia-Version" => ViteRuby.digest }
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body.fetch("props").fetch("cookie_settings")).to eq("participated" => false, "duration_days" => 30)
@@ -22,7 +22,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(response.headers["Cache-Control"]).to include("no-store")
   end
 
-  it "sets only the literal flag after successful completion, with limited duration and access" do
+  it "[COOKIE-02] Nach Abschluss ausschließlich zeitlich begrenztes Teilnahmeflag setzen" do
     submit("baseline", baseline)
     expect(response.cookies).not_to have_key(status_key)
     submit("evaluation", evaluation)
@@ -37,7 +37,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(status_cookie_header).to be_nil
   end
 
-  it "blocks new submissions in a marked browser without creating further research records" do
+  it "[COOKIE-03] Neue Befragung im markierten Browser unterbinden" do
     submit("baseline", baseline)
     submit("evaluation", evaluation)
     expect { submit("baseline", baseline, id: SecureRandom.uuid) }.not_to change(Assessment, :count)
@@ -45,7 +45,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(status_cookie_header).to be_nil
   end
 
-  it "does not let an older unfinished assessment bypass the browser participation guard" do
+  it "[COOKIE-04] Offene Altbefragung nicht zum Umgehen der Teilnahmesperre nutzen" do
     other_id = SecureRandom.uuid
     submit("baseline", baseline, id: other_id)
     submit("baseline", baseline)
@@ -55,7 +55,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(Assessment.find_by!(public_id: other_id).completed_at).to be_nil
   end
 
-  it "allows identical retries of saved submissions without extending the cookie lifetime" do
+  it "[COOKIE-05] Wiederholungen ohne Verlängerung der Cookielaufzeit erlauben" do
     submit("baseline", baseline)
     submit("evaluation", evaluation)
     submit("evaluation", evaluation)
@@ -67,7 +67,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(status_cookie_header).to be_nil
   end
 
-  it "sets no marker for incomplete, failed or rejected submissions" do
+  it "[COOKIE-06] Bei offenen und fehlerhaften Fällen kein Teilnahmeflag setzen" do
     submit("evaluation", evaluation)
     expect(response).to have_http_status(:not_found)
     expect(response.cookies).not_to have_key(status_key)
@@ -77,7 +77,7 @@ RSpec.describe "Participation cookies", type: :request do
     expect(response.cookies).not_to have_key(status_key)
   end
 
-  it "adds Secure on HTTPS and retains HttpOnly" do
+  it "[COOKIE-07] Teilnahmeflag bei HTTPS mit Secure schützen" do
     https!
     submit("baseline", baseline)
     submit("evaluation", evaluation)

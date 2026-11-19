@@ -1,0 +1,146 @@
+[
+  {
+    "id": "FA-01",
+    "title": "Standardisierter mehrstufiger Prozess",
+    "scope": "technical",
+    "limit": "Geprüft sind erreichbare Schritte, Pflichtantworten, Rücknavigation und Abbruch im synthetischen Ablauf."
+  },
+  {
+    "id": "FA-02",
+    "title": "Ursprüngliche Erwartungen erfassen",
+    "scope": "technical",
+    "limit": "Acht festgelegte Kategorien; vollständige Erfassung und Persistenz technisch geprüft."
+  },
+  {
+    "id": "FA-03",
+    "title": "Einheitlichen Prompt bereitstellen",
+    "scope": "technical",
+    "limit": "Text und Bereitstellung geprüft; die praktische Befolgung durch externe LLMs bleibt MAN-04 vorbehalten."
+  },
+  {
+    "id": "FA-04",
+    "title": "LLM-Antwort importieren",
+    "scope": "technical",
+    "limit": "Synthetische Antworten geprüft; real erzeugte LLM-Antwort nicht untersucht (MAN-04)."
+  },
+  {
+    "id": "FA-05",
+    "title": "Struktur und Vollständigkeit validieren",
+    "scope": "technical",
+    "limit": "Definierte gültige und ungültige Eingaben geprüft; keine erschöpfende Prüfung aller Zeichenfolgen."
+  },
+  {
+    "id": "FA-06",
+    "title": "Antworten den Attributkategorien zuordnen",
+    "scope": "technical",
+    "limit": "Unterschiedliche synthetische Werte, umgekehrte Schlüsselreihenfolge und aktuelle Kategorieanzeige geprüft."
+  },
+  {
+    "id": "FA-07",
+    "title": "Inferierte Angaben präsentieren",
+    "scope": "technical",
+    "limit": "Kategoriespezifische synthetische Angaben im Browser geprüft; keine Bewertung ihrer inhaltlichen Richtigkeit."
+  },
+  {
+    "id": "FA-08",
+    "title": "Korrektheit bewerten oder sich enthalten",
+    "scope": "technical",
+    "limit": "correct, incorrect und invalid sowie Nicht-Ableitung und Verweigerung geprüft."
+  },
+  {
+    "id": "FA-09",
+    "title": "Erwartung und Inferenz abgleichen",
+    "scope": "technical",
+    "limit": "Deterministischer Abgleich gegen feste Sollwerte; inhaltliche Wahrheit basiert weiterhin auf Selbstbewertung."
+  },
+  {
+    "id": "FA-10",
+    "title": "Über- und Unterschätzung quantitativ erfassen",
+    "scope": "technical",
+    "limit": "Beide Richtungen und gemeinsamer Nenner einschließlich Ausschlüssen geprüft."
+  },
+  {
+    "id": "FA-11",
+    "title": "Kennzahlen aggregieren",
+    "scope": "technical",
+    "limit": "Gesamt-, Kategorie- und Gruppenwerte, individuelle Mittelwerte und Ergebnisfreigabe geprüft."
+  },
+  {
+    "id": "FA-12",
+    "title": "Daten vor jeder Übermittlung anzeigen",
+    "scope": "technical",
+    "limit": "Die sichtbaren Blattwerte beider Abschnittsvorschauen werden mit den tatsächlich erfassten JSON-Payloads verglichen."
+  },
+  {
+    "id": "FA-13",
+    "title": "Serverseitig speichern und auswerten",
+    "scope": "technical",
+    "limit": "HTTP-Verarbeitung, Datenbankkonsistenz, Atomarität, Idempotenz und Auswertung in der Testumgebung geprüft."
+  },
+  {
+    "id": "QA-01",
+    "title": "Ohne technische Kenntnisse benutzbar",
+    "scope": "partial",
+    "limit": "Technische Fokusführung allein belegt keine Verständlichkeit; Zielgruppennutzungstest MAN-01 nicht durchgeführt."
+  },
+  {
+    "id": "QA-02",
+    "title": "Befragung selbstständig durchführbar",
+    "scope": "partial",
+    "limit": "Ohne Untersuchung des tatsächlichen Hilfebedarfs kein Erfüllungsnachweis; MAN-01 nicht durchgeführt."
+  },
+  {
+    "id": "QA-03",
+    "title": "Einheitliche Befragung für alle Teilnehmer",
+    "scope": "technical",
+    "limit": "Fragen, Kategorien, Prompt und Instrumentversion technisch geprüft; externe LLM-Kontexte werden nicht vereinheitlicht."
+  },
+  {
+    "id": "QA-04",
+    "title": "Messung und Auswertung nachvollziehbar und reproduzierbar",
+    "scope": "partial",
+    "limit": "Deterministische Berechnungen und Versionierung technisch geprüft; externe Modellauskünfte werden nicht als reproduzierbar nachgewiesen."
+  },
+  {
+    "id": "QA-05",
+    "title": "Fehlerhafte und unvollständige Eingaben angemessen behandeln",
+    "scope": "partial",
+    "limit": "Erkennung, Zurückweisung, Retry und Rollback geprüft; Verständlichkeit und Angemessenheit für Zielgruppenpersonen nicht empirisch geprüft."
+  },
+  {
+    "id": "QA-06",
+    "title": "Mit aktuellen Browsern und Geräten kompatibel und nutzbar",
+    "scope": "partial",
+    "limit": "Headless Chromium mit festgelegten CSS-Fensterbreiten geprüft; andere Browser und reale Geräte nicht untersucht (MAN-02)."
+  },
+  {
+    "id": "QA-07",
+    "title": "Mehr Befragungen ohne proportional steigenden Wartungs-/Betreuungsaufwand",
+    "scope": "partial",
+    "limit": "Keine Last- und Betriebsuntersuchung; keine Messung von Wartungs- oder Betreuungszeiten (MAN-03)."
+  },
+  {
+    "id": "DS-01",
+    "title": "Konkrete Inferenzinhalte bleiben lokal",
+    "scope": "technical",
+    "limit": "Ergänzendes Datenflusskriterium aus Kapitel 6.1: fetch-Payloads, Ablehnung zusätzlicher Felder und gespeicherte Datensätze mit synthetischen Markern prüfen. Kein allgemeiner Anonymitätsnachweis."
+  },
+  {
+    "id": "DS-02",
+    "title": "Sensible Angaben fehlen in Anwendungslogs",
+    "scope": "technical",
+    "limit": "Ergänzendes Kriterium aus Kapitel 6.1: konfigurierter Parameterfilter und tatsächliche Rails-Logs geprüft; keine Aussage über Infrastruktur- oder Fremdsystemlogs."
+  },
+  {
+    "id": "DS-03",
+    "title": "Aggregierte Ergebnisse erst ab Mindestzahl freigeben",
+    "scope": "technical",
+    "limit": "Ergänzendes Kriterium aus Kapitel 6.1: unterhalb, exakt an und oberhalb der Schwelle sowie kleine und ergänzende Gruppen prüfen; keine Garantie gegen jede Reidentifikation."
+  },
+  {
+    "id": "DS-04",
+    "title": "Datensparsames browsergebundenes Teilnahmeflag",
+    "scope": "technical",
+    "limit": "Ergänzende Implementierungsprüfung: Flag, Lebensdauer und Attribute sowie Informationsanzeige geprüft; keine sichere Verhinderung mehrfacher Teilnahme derselben Person und keine rechtliche Bewertung."
+  }
+]

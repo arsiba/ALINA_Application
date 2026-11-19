@@ -4,6 +4,7 @@ require_relative "../support/browser"
 RSpec.describe "Assessment workflow", type: :feature do
   before do
     Capybara.current_driver = :assessment_chrome
+    resize_evaluation_viewport(1280)
     visit "/form"
     expect(page).to have_text("Bevor du beginnst")
     page.execute_script <<~JS
@@ -48,7 +49,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page).to have_field("inference-response")
   end
 
-  it "shows the disclaimer before basis data and allows returning without sending" do
+  it "[FLOW-01] Hinweise vor Basisdaten und Rücknavigation ohne Übertragung" do
     expect(page).to have_text("Welche Daten werden übertragen?")
     expect(page).not_to have_field("basis-age")
     click_button "Weiter zu den Basisdaten"
@@ -60,7 +61,7 @@ RSpec.describe "Assessment workflow", type: :feature do
 
   def check_responsive_layout
     [ 320, 375, 640, 768, 1280 ].each do |width|
-      page.driver.browser.manage.window.resize_to(width, 900)
+      resize_evaluation_viewport(width)
       expect(page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")).to be(true), "Horizontal overflow at #{width}px"
       page.all("main button").each do |button|
         expect(button.rect.height).to be >= 44
@@ -68,18 +69,18 @@ RSpec.describe "Assessment workflow", type: :feature do
     end
   end
 
-  it "fits narrow mobile screens and larger breakpoints throughout the workflow" do
+  it "[FLOW-02] Workflow bei fünf Fensterbreiten auf Überlauf und Schaltflächen prüfen" do
     check_responsive_layout
-    page.driver.browser.manage.window.resize_to(375, 900)
-    page.save_screenshot("/tmp/alina-disclaimer-mobile.png")
+    resize_evaluation_viewport(375)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-disclaimer-mobile.png"))
     click_button "Weiter zu den Basisdaten"
     check_responsive_layout
     select "25–34", from: "basis-age"
     select "ChatGPT", from: "basis-model"
     click_button "Weiter"
     check_responsive_layout
-    page.driver.browser.manage.window.resize_to(375, 900)
-    page.save_screenshot("/tmp/alina-expectation-mobile.png")
+    resize_evaluation_viewport(375)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-expectation-mobile.png"))
     answer_questions("yes")
     check_responsive_layout
     click_button "Jetzt senden"
@@ -89,13 +90,13 @@ RSpec.describe "Assessment workflow", type: :feature do
     fill_in "inference-response", with: inference.to_json
     click_button "Weiter"
     check_responsive_layout
-    page.driver.browser.manage.window.resize_to(375, 900)
-    page.save_screenshot("/tmp/alina-validation-mobile.png")
-    page.driver.browser.manage.window.resize_to(1280, 900)
-    page.save_screenshot("/tmp/alina-validation-desktop.png")
+    resize_evaluation_viewport(375)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-validation-mobile.png"))
+    resize_evaluation_viewport(1280)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-validation-desktop.png"))
   end
 
-  it "asks one question at a time and preserves previous answers when going back" do
+  it "[FLOW-03] Einzelfragen, Pflichtantwort und Rücknavigation prüfen" do
     click_button "Weiter zu den Basisdaten"
     select "25–34", from: "basis-age"
     select "ChatGPT", from: "basis-model"
@@ -112,7 +113,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page.evaluate_script("window.submissions")).to eq([])
   end
 
-  it "sends once per major step and excludes local LLM answers from every payload" do
+  it "[FLOW-04] Vollständigen Ablauf mit lokalem Inferenzmarker durchlaufen" do
     review_baseline
     expect(page.evaluate_script("window.submissions")).to eq([])
     click_button "Bearbeiten"
@@ -151,7 +152,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page).to have_css('section[aria-label="Gesendete Abschnitte"] details', count: 2)
   end
 
-  it "transmits null and safety refusal statuses without exposing inference values" do
+  it "[FLOW-05] Nicht-Ableitung und Verweigerung im Workflow unterscheiden" do
     allow(Rails.application.config.x).to receive(:results_min_participants).and_return(1)
     send_baseline
     inference = AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }
@@ -188,7 +189,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
   end
 
-  it "shows the score only after final success, independently of the public threshold, and discards it on reload" do
+  it "[FLOW-06] Persönlichen Score erst nach Erfolg zeigen und bei Reload verwerfen" do
     allow(Rails.application.config.x).to receive(:results_min_participants).and_return(100)
     send_baseline
     fill_in "inference-response", with: AttributeResponse::CATEGORIES.index_with { "LOCAL_SECRET" }.to_json
@@ -209,17 +210,17 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page.evaluate_script("JSON.stringify(window.history.state)")).not_to include("awareness-score", "agreement_count", "LOCAL_SECRET")
     check_responsive_layout
     page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-personal-score-desktop.png")
-    page.driver.browser.manage.window.resize_to(375, 900)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-personal-score-desktop.png"))
+    resize_evaluation_viewport(375)
     page.execute_script("document.querySelector('#personal-score-heading').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-personal-score-mobile.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-personal-score-mobile.png"))
     page.refresh
     expect(page).to have_text("In diesem Browser wurde bereits teilgenommen")
     expect(page).not_to have_css('[aria-labelledby="personal-score-heading"]')
     expect(page).not_to have_text("LOCAL_SECRET")
   end
 
-  it "shows an undefined personal score when every answer is excluded" do
+  it "[FLOW-07] Bei vollständig ausgeschlossenen Antworten keinen persönlichen Score anzeigen" do
     send_baseline
     fill_in "inference-response", with: AttributeResponse::CATEGORIES.index_with { "SICHERHEITSRICHTLINIE" }.to_json
     click_button "Weiter"
@@ -236,7 +237,7 @@ RSpec.describe "Assessment workflow", type: :feature do
   end
 
   [ "editing", "review" ].each do |stage|
-    it "cancels from #{stage} without submitting drafts" do
+    it "[FLOW-08-#{stage}] Abbruch aus #{stage} verwirft ungesendete Angaben" do
       review_baseline if stage == "review"
       click_button "Abbrechen"
       expect(page).to have_text("Deine offenen Angaben wurden verworfen.")
@@ -246,7 +247,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     end
   end
 
-  it "keeps the preview on server errors and permits retrying" do
+  it "[FLOW-09] Serverfehler erhält Vorschau und erlaubt Wiederholung" do
     review_baseline
     page.execute_script("window.deliveryMode = 'error'")
     click_button "Jetzt senden"
@@ -258,7 +259,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page).to have_field("inference-response")
   end
 
-  it "cancels a pending request and prevents advancing afterwards" do
+  it "[FLOW-10] Laufende Anfrage abbrechen und spätes Weitergehen verhindern" do
     review_baseline
     page.execute_script("window.deliveryMode = 'pending'")
     click_button "Jetzt senden"
@@ -270,7 +271,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page.evaluate_script("window.submissions.length")).to eq(1)
   end
 
-  it "rejects malformed and incomplete LLM answers locally" do
+  it "[FLOW-11] Ungültige LLM-Antworten lokal zurückweisen" do
     send_baseline
     [ "not JSON", '{"alter":"34"}' ].each do |response|
       fill_in "inference-response", with: response
@@ -281,7 +282,7 @@ RSpec.describe "Assessment workflow", type: :feature do
     end
   end
 
-  it "discards imported answers when cancelling after the first major step" do
+  it "[FLOW-12] Importierten Entwurf beim Abbruch verwerfen" do
     send_baseline
     fill_in "inference-response", with: "LOCAL_SECRET"
     click_button "Abbrechen"
@@ -290,5 +291,94 @@ RSpec.describe "Assessment workflow", type: :feature do
     expect(page).not_to have_text("LOCAL_SECRET")
     expect(page).to have_css("details", count: 1)
     expect(page.evaluate_script("window.submissions.length")).to eq(1)
+  end
+
+  it "[FLOW-13] Einheitlichen, unveränderbaren Prompt der Instrumentversion bereitstellen" do
+    send_baseline
+    prompt = find("#inference-prompt")
+    expect(prompt[:readonly]).to be_truthy
+    expect(prompt.value).to eq(File.read(Rails.root.join("spec/evaluation/fixtures/prompt_v1.txt")))
+    expect(page.evaluate_script("window.submissions.length")).to eq(1)
+  end
+
+  def visible_preview
+    page.evaluate_script <<~JS
+      (() => {
+        const result = {};
+        function collect(dl, path) {
+          for (const row of dl.querySelectorAll(':scope > div')) {
+            const key = row.querySelector(':scope > dt').textContent.trim();
+            const dd = row.querySelector(':scope > dd');
+            const nested = dd.querySelector('dl');
+            const next = [...path, key];
+            if (nested) collect(nested, next);
+            else result[next.join(' / ')] = dd.textContent.trim();
+          }
+        }
+        collect(document.querySelector('section[aria-labelledby="workflow-heading"] dl'), []);
+        return result;
+      })()
+    JS
+  end
+
+  def readable_payload(payload, path = [])
+    labels = {
+      "assessment_id" => "Befragungskennung", "step" => "Abschnitt", "data" => "Angaben",
+      "basis" => "Basisdaten", "age_group" => "Altersgruppe", "model" => "Verwendetes LLM",
+      "expectations" => "Erwartung einer korrekten Ableitung", "ratings" => "Bewertung der LLM-Angaben",
+      "inference_statuses" => "Auskunftsstatus je Kategorie",
+      "alter" => "Alter", "geschlecht" => "Geschlecht", "beziehungsstatus" => "Beziehungsstatus",
+      "wohnort" => "Wohnort", "geburtsort" => "Geburtsort", "bildungsstand" => "Bildungsstand",
+      "beruf" => "Beruf", "einkommen" => "Einkommen"
+    }
+    values = {
+      "baseline" => "Basisdaten und Erwartungen", "evaluation" => "LLM-Auskunft und Bewertung",
+      "yes" => "Ja", "no" => "Nein", "correct" => "Richtig", "incorrect" => "Falsch",
+      "invalid" => "Ungültig / Enthaltung", "provided" => "Angabe vorhanden",
+      "not_inferred" => "Keine Ableitung (null)", "refused" => "Durch Sicherheitsrichtlinie verweigert"
+    }
+    payload.each_with_object({}) do |(key, value), result|
+      current = path + [ labels.fetch(key) ]
+      if value.is_a?(Hash)
+        result.merge!(readable_payload(value, current))
+      else
+        result[current.join(" / ")] = values.fetch(value, value)
+      end
+    end
+  end
+
+  it "[FLOW-14] Sichtbare Vorschau vollständig mit beiden tatsächlichen Payloads abgleichen" do
+    review_baseline
+    baseline_preview = visible_preview
+    expect(baseline_preview.size).to eq(12)
+    click_button "Jetzt senden"
+    expect(page).to have_field("inference-response")
+    expect(baseline_preview).to eq(readable_payload(page.evaluate_script("window.submissions[0]")))
+
+    categories = %w[alter geschlecht beziehungsstatus wohnort geburtsort bildungsstand beruf einkommen]
+    inference = categories.index_with { |category| "EVAL_LOCAL_#{category}" }
+    inference["alter"] = nil
+    inference["geschlecht"] = "SICHERHEITSRICHTLINIE"
+    fill_in "inference-response", with: inference.to_json
+    click_button "Weiter"
+    categories.each_with_index do |category, index|
+      if index > 1
+        expect(page).to have_css("blockquote", exact_text: "EVAL_LOCAL_#{category}")
+        (categories.drop(2) - [ category ]).each { |other| expect(page).not_to have_css("blockquote", exact_text: "EVAL_LOCAL_#{other}") }
+        find("input[value='#{%w[correct incorrect invalid][index % 3]}']").click
+      end
+      click_button(index == 7 ? "Abschnitt prüfen" : "Weiter")
+    end
+    evaluation_preview = visible_preview
+    expect(evaluation_preview.size).to eq(18)
+    expect(page).not_to have_text("EVAL_LOCAL_")
+    expect(page.evaluate_script("window.submissions.length")).to eq(1)
+    click_button "Jetzt senden"
+    expect(page).to have_text("Alle 2 Abschnitte gesendet.")
+    payloads = page.evaluate_script("window.submissions")
+    expect(evaluation_preview).to eq(readable_payload(payloads[1]))
+    expect(payloads.to_json).not_to include("EVAL_LOCAL_")
+    record = Assessment.completed.find_by!(public_id: payloads[0]["assessment_id"])
+    expect(record.attributes.to_json + record.attribute_responses.map(&:attributes).to_json).not_to include("EVAL_LOCAL_")
   end
 end
