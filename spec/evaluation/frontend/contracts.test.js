@@ -1,5 +1,6 @@
 import test from 'node:test';
-import assert from 'node:assert/strict';
+import { personalScore } from '../../../app/frontend/lib/assessment/personal-score.js';
+import { checkEqual } from '../support/observations.js';
 import { readFileSync } from 'node:fs';
 import { attributes, parseInference, inferenceStatus } from '../../../app/frontend/lib/assessment/attributes.js';
 import { assessmentPrompt } from '../../../app/frontend/lib/assessment/prompt.js';
@@ -8,18 +9,18 @@ const keys = ['alter', 'geschlecht', 'beziehungsstatus', 'wohnort', 'geburtsort'
 const valid = () => Object.fromEntries(keys.map(key => [key, `SYNTHETISCH_${key}`]));
 
 test('[JS-05] Acht festgelegte Kategorien in einheitlicher Reihenfolge', () => {
-  assert.deepEqual(attributes.map(attribute => attribute.id), keys);
+  checkEqual(attributes.map(attribute => attribute.id), keys, "attributes.map(attribute => attribute.id)");
 });
 test('[JS-06] Import ordnet unterschiedliche Werte anhand der Schlüssel zu', () => {
   const reversed = Object.fromEntries(Object.entries(valid()).reverse());
-  assert.deepEqual(parseInference(JSON.stringify(reversed)), valid());
+  checkEqual(parseInference(JSON.stringify(reversed)), valid(), "parseInference(JSON.stringify(reversed))");
 });
 test('[JS-07] null und Verweigerung bleiben unterscheidbare Statusarten', () => {
   const data = { ...valid(), alter: null, geschlecht: 'SICHERHEITSRICHTLINIE' };
   const parsed = parseInference(JSON.stringify(data));
-  assert.equal(inferenceStatus(parsed.alter), 'not_inferred');
-  assert.equal(inferenceStatus(parsed.geschlecht), 'refused');
-  assert.equal(inferenceStatus(parsed.beruf), 'provided');
+  checkEqual(inferenceStatus(parsed.alter), 'not_inferred', "inferenceStatus(parsed.alter)");
+  checkEqual(inferenceStatus(parsed.geschlecht), 'refused', "inferenceStatus(parsed.geschlecht)");
+  checkEqual(inferenceStatus(parsed.beruf), 'provided', "inferenceStatus(parsed.beruf)");
 });
 const invalidCases = [
   ['JS-08', 'Syntaxfehler', () => '{'],
@@ -40,16 +41,30 @@ const invalidCases = [
 ];
 for (const [id, title, input] of invalidCases) {
   test(`[${id}] ${title} wird zurückgewiesen`, () => {
-    assert.throws(() => parseInference(input()), Error);
+    let rejected = false;
+    try { parseInference(input()); } catch (error) { rejected = error instanceof Error; }
+    checkEqual(rejected, true, 'Ungültiger Import zurückgewiesen');
   });
 }
 test('[JS-23] Genau 2000 Zeichen werden angenommen', () => {
   const data = { ...valid(), alter: 'x'.repeat(2000) };
-  assert.deepEqual(parseInference(JSON.stringify(data)), data);
+  checkEqual(parseInference(JSON.stringify(data)), data, "parseInference(JSON.stringify(data))");
 });
 test('[JS-24] Prompt entspricht der dokumentierten Instrumentversion', () => {
-  assert.equal(assessmentPrompt, readFileSync(new URL('../fixtures/prompt_v1.txt', import.meta.url), 'utf8'));
+  checkEqual(assessmentPrompt, readFileSync(new URL('../fixtures/prompt_v1.txt', import.meta.url), 'utf8'), "assessmentPrompt");
   const schema = JSON.parse(assessmentPrompt.slice(assessmentPrompt.lastIndexOf('\n') + 1));
-  assert.deepEqual(Object.keys(schema), keys);
-  assert.deepEqual(parseInference(JSON.stringify(schema)), schema);
+  checkEqual(Object.keys(schema), keys, "Object.keys(schema)");
+  checkEqual(parseInference(JSON.stringify(schema)), schema, "parseInference(JSON.stringify(schema))");
+});
+
+
+test('[JS-25] Alle gültigen Messkombinationen entsprechen den unabhängigen Referenzwerten', () => {
+  const cases = JSON.parse(readFileSync(new URL('../fixtures/measurement_cases.json', import.meta.url), 'utf8'));
+  for (const reference of cases) {
+    const answers = value => Object.fromEntries(keys.map(key => [key, value]));
+    const result = personalScore(answers(reference.expectation), answers(reference.rating), answers(reference.inference_status));
+    for (const [key, expected] of Object.entries(reference.expected)) {
+      checkEqual(result[key], expected, `${reference.id}: ${key}`);
+    }
+  }
 });

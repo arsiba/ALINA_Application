@@ -52,6 +52,7 @@ export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-$PWD/tmp/rubocop}"
 run "Check Ruby dependencies (run bundle install first if needed)" bundle check
 run "Ruby linting" bundle exec rubocop --no-parallel
 run "Security analysis" bundle exec brakeman --no-pager
+run "Evaluation reporting infrastructure" bundle exec rspec spec/evaluation/support/reporting_checks.rb --format progress
 # Build once, then exercise the same production assets in the browser tests.
 run "Frontend production build" env RAILS_ENV=production RACK_ENV=production npm run build
 run "Prepare test database" bin/rails db:prepare

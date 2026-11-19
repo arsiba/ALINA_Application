@@ -1,4 +1,5 @@
 require "rails_helper"
+require_relative "../support/observations"
 
 RSpec.describe Assessment, type: :model do
   def build_assessment
@@ -37,11 +38,12 @@ RSpec.describe Assessment, type: :model do
     end
     assessment.completed_at = Time.current
     assessment.save!
-    expect(assessment.reload.evaluation).to eq(
-      evaluable_count: 6, excluded_count: 2, not_inferred_count: 2, refused_count: 1, invalid_count: 1,
+    expected = { evaluable_count: 6, excluded_count: 2, not_inferred_count: 2, refused_count: 1, invalid_count: 1,
       underestimation_count: 1, overestimation_count: 2, gap_rate: 0.5,
-      underestimation_rate: 1.fdiv(6), overestimation_rate: 2.fdiv(6)
-    )
+      underestimation_rate: 1.fdiv(6), overestimation_rate: 2.fdiv(6) }
+    actual = assessment.reload.evaluation
+    compare_metrics("Gemischter Einzelfall", expected: expected, actual: actual)
+    expect(actual).to eq(expected)
   end
 
   it "[MOD-04] Bei ausschließlich ausgeschlossenen Antworten keine Quote berechnen" do
@@ -49,7 +51,7 @@ RSpec.describe Assessment, type: :model do
     assessment.attribute_responses.each { |answer| answer.assign_attributes(inference_status: "refused", rating: "invalid") }
     assessment.completed_at = Time.current
     assessment.save!
-    expect(assessment.evaluation).to include(evaluable_count: 0, excluded_count: 8, gap_rate: nil, underestimation_rate: nil, overestimation_rate: nil)
+    compare_metrics("Individuelle Kennzahlen", actual: assessment.evaluation, expected: { evaluable_count: 0, excluded_count: 8, gap_rate: nil, underestimation_rate: nil, overestimation_rate: nil })
   end
 
   it "[MOD-05] Datenbank schützt Eindeutigkeit und konsistente Bewertungen" do
@@ -66,5 +68,25 @@ RSpec.describe Assessment, type: :model do
     assessment = build_assessment
     assessment.save!
     expect { assessment.destroy! }.to change(AttributeResponse, :count).by(-8)
+  end
+
+  it "[MOD-07] Alle gültigen Erwartungs-, Status- und Bewertungskombinationen gegen Referenzwerte prüfen" do
+    cases = JSON.parse(File.read(Rails.root.join("spec/evaluation/fixtures/measurement_cases.json")))
+    combinations = %w[yes no].product([
+      %w[provided correct], %w[provided incorrect], %w[provided invalid],
+      %w[not_inferred invalid], %w[refused invalid]
+    ]).map(&:flatten)
+    actual_combinations = cases.map { |reference| reference.values_at("expectation", "inference_status", "rating") }
+    compare_observation("Vollständige gültige Falltabelle", expected: combinations.sort, actual: actual_combinations.sort)
+    cases.each do |reference|
+      assessment = build_assessment
+      assessment.attribute_responses.each do |answer|
+        answer.assign_attributes(reference.slice("expectation", "inference_status", "rating"))
+      end
+      assessment.completed_at = Time.current
+      assessment.save!
+      expected = reference.fetch("expected").except("score", "agreement_count")
+      compare_metrics(reference.fetch("id"), expected: expected, actual: assessment.reload.evaluation.stringify_keys)
+    end
   end
 end

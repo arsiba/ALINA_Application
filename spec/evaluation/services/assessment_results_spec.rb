@@ -1,4 +1,5 @@
 require "rails_helper"
+require_relative "../support/observations"
 
 RSpec.describe AssessmentResults do
   before { allow(Rails.application.config.x).to receive(:results_min_participants).and_return(2) }
@@ -24,7 +25,7 @@ RSpec.describe AssessmentResults do
     assessment(version: "old")
     results = described_class.call
     expect(results).to include(available: true, participant_count: 2)
-    expect(results[:overall]).to include(response_count: 16, evaluable_count: 16, gap_rate: 0.0, correct_rate: 1.0)
+    compare_metrics("Aggregierte Kennzahlen", actual: results[:overall], expected: { response_count: 16, evaluable_count: 16, gap_rate: 0.0, correct_rate: 1.0 })
     expect(results[:categories].size).to eq(8)
     expect(results[:categories].map { |row| row[:response_count] }).to eq([ 2 ] * 8)
   end
@@ -40,13 +41,11 @@ RSpec.describe AssessmentResults do
     }
     records = 2.times.map { assessment(answers: answers) }
     results = described_class.call
-    expect(results[:overall]).to include(
-      response_count: 16, evaluable_count: 12, excluded_count: 4,
+    compare_metrics("Aggregierte Kennzahlen", actual: results[:overall], expected: { response_count: 16, evaluable_count: 12, excluded_count: 4,
       not_inferred_count: 4, refused_count: 2, invalid_count: 2,
       underestimation_count: 2, overestimation_count: 4, agreement_count: 6,
       gap_rate: 0.5, coverage_rate: 0.75, correct_rate: 0.5,
-      mean_individual_gap_rate: 0.5
-    )
+      mean_individual_gap_rate: 0.5 })
     expect(results[:overall][:gap_rate]).to eq(records.first.evaluation[:gap_rate])
     expect(results[:categories].find { |row| row[:category] == "geschlecht" }).to include(gap_rate: nil, evaluable_count: 0, excluded_count: 2)
     expect(results[:categories].find { |row| row[:category] == "alter" }).to include(overestimation_rate: 1.0, correct_rate: 0.0)
@@ -57,13 +56,13 @@ RSpec.describe AssessmentResults do
     answers = AttributeResponse::CATEGORIES.index_with { { inference_status: "refused", rating: "invalid" } }
     answers["alter"] = { inference_status: "provided", rating: "correct" }
     assessment(answers: answers)
-    expect(described_class.call[:overall]).to include(gap_rate: 8.fdiv(9), mean_individual_gap_rate: 0.5)
+    compare_metrics("Aggregierte Kennzahlen", actual: described_class.call[:overall], expected: { gap_rate: 8.fdiv(9), mean_individual_gap_rate: 0.5 })
   end
 
   it "[AGG-05] Nullnenner und Teilnehmer ohne auswertbare Antworten erfassen" do
     answers = AttributeResponse::CATEGORIES.index_with { { inference_status: "refused", rating: "invalid" } }
     2.times { assessment(answers: answers) }
-    expect(described_class.call[:overall]).to include(gap_rate: nil, correct_rate: nil, coverage_rate: 0.0, mean_individual_gap_rate: nil, participants_without_evaluable_answers: 2)
+    compare_metrics("Aggregierte Kennzahlen", actual: described_class.call[:overall], expected: { gap_rate: nil, correct_rate: nil, coverage_rate: 0.0, mean_individual_gap_rate: nil, participants_without_evaluable_answers: 2 })
   end
 
   it "[AGG-06] Kleine Modell- und Altersgruppen gegen Differenzbildung schützen" do

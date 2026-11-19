@@ -486,13 +486,14 @@
       "FA-08",
       "FA-12",
       "FA-13",
-      "DS-01"
+      "DS-01",
+      "DS-02"
     ],
     "section": "C – Einhaltung des Datenflusses",
-    "method": "Capybara/Selenium; sichtbare DOM-Vorschau gegen erfasste fetch-Bodies und Datenbank",
+    "method": "Capybara/Selenium; DOM-Vorschau, fetch-Bodies, Datenbank und Rails-Anwendungslogs desselben erfolgreichen Ablaufs",
     "given": "Basisvorschau mit 12 Blattwerten; Bewertungsabschnitt mit 18 Blattwerten; null, Verweigerung, unterschiedliche Bewertungen und kategoriespezifische Marker.",
-    "expected": "Alle sichtbaren Pfade/Werte entsprechen nach dokumentierter Beschriftungsübersetzung exakt den gesendeten Payloads; jeweils nur aktuelle Kategorie angezeigt; kein Marker in Payload oder gespeicherten Datensätzen.",
-    "limit": "Erfasst fetch-Aufrufe dieses Ablaufs; keine vollständige Netzwerkanalyse aller Browserkanäle oder Infrastrukturlogs.",
+    "expected": "Alle sichtbaren Pfade/Werte entsprechen nach dokumentierter Beschriftungsübersetzung exakt den gesendeten Payloads; jeweils nur aktuelle Kategorie angezeigt; kein Marker in Payload oder gespeicherten Datensätzen. Zusätzlich muss derselbe Inferenzmarker in den erfassten Rails-Logs des erfolgreichen Ablaufs fehlen; Controller- und Filtereinträge müssen vorhanden sein.",
+    "limit": "Erfasst fetch-Aufrufe und Rails-Anwendungslogs dieses Ablaufs; keine vollständige Netzwerkanalyse aller Browserkanäle oder Infrastruktur-/Proxylogs. Die JSON-Payloads werden als aufbereitete Vorschauwerte protokolliert; alle Testdaten sind synthetisch.",
     "file": "spec/evaluation/browser/form_workflow_spec.rb"
   },
   {
@@ -839,6 +840,21 @@
     "file": "spec/evaluation/frontend/javascript_spec.rb"
   },
   {
+    "id": "JS-25",
+    "title": "Alle gültigen Messkombinationen entsprechen den unabhängigen Referenzwerten",
+    "file": "spec/evaluation/frontend/javascript_spec.rb",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec startet einen Node-Test des persönlichen Scores",
+    "given": "Zehn feste Referenzfälle aus measurement_cases.json: yes/no jeweils mit provided/correct, provided/incorrect, provided/invalid, not_inferred/invalid und refused/invalid; je acht gleiche Kategorieantworten.",
+    "expected": "Berechnete Zähler, Abweichungs- und Richtungsquoten entsprechen je Fall den unabhängig vorgegebenen Sollwerten; im Frontend zusätzlich Score und Übereinstimmungen. Soll und Ist werden protokolliert.",
+    "limit": "Vollständige Tabelle der fachlich gültigen Status-/Bewertungskombinationen bei binärer Erwartung; keine Validierung der inhaltlichen Wahrheit einer LLM-Inferenz."
+  },
+  {
     "id": "MAN-01",
     "title": "Bedienbarkeit ohne technische Kenntnisse und ohne Unterstützung",
     "requirements": [
@@ -978,6 +994,21 @@
     "expected": "Genau acht zugehörige Kategorieantworten werden mitgelöscht.",
     "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
     "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-07",
+    "title": "Alle gültigen Erwartungs-, Status- und Bewertungskombinationen gegen Referenzwerte prüfen",
+    "file": "spec/evaluation/models/assessment_spec.rb",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Zehn feste Referenzfälle aus measurement_cases.json: yes/no jeweils mit provided/correct, provided/incorrect, provided/invalid, not_inferred/invalid und refused/invalid; je acht gleiche Kategorieantworten.",
+    "expected": "Berechnete Zähler, Abweichungs- und Richtungsquoten entsprechen je Fall den unabhängig vorgegebenen Sollwerten; im Frontend zusätzlich Score und Übereinstimmungen. Soll und Ist werden protokolliert.",
+    "limit": "Vollständige Tabelle der fachlich gültigen Status-/Bewertungskombinationen bei binärer Erwartung; keine Validierung der inhaltlichen Wahrheit einer LLM-Inferenz."
   },
   {
     "id": "NOTICE-01",

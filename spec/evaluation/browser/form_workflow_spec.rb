@@ -1,4 +1,5 @@
 require "rails_helper"
+require_relative "../support/observations"
 require_relative "../support/browser"
 
 RSpec.describe "Assessment workflow", type: :feature do
@@ -348,37 +349,48 @@ RSpec.describe "Assessment workflow", type: :feature do
   end
 
   it "[FLOW-14] Sichtbare Vorschau vollständig mit beiden tatsächlichen Payloads abgleichen" do
-    review_baseline
-    baseline_preview = visible_preview
-    expect(baseline_preview.size).to eq(12)
-    click_button "Jetzt senden"
-    expect(page).to have_field("inference-response")
-    expect(baseline_preview).to eq(readable_payload(page.evaluate_script("window.submissions[0]")))
+    buffer = StringIO.new
+    logger = ActiveSupport::Logger.new(buffer)
+    Rails.logger.broadcast_to(logger)
+    begin
+      review_baseline
+      baseline_preview = visible_preview
+      expect(baseline_preview.size).to eq(12)
+      click_button "Jetzt senden"
+      expect(page).to have_field("inference-response")
+      compare_observation("Basisvorschau und Request", expected: baseline_preview, actual: readable_payload(page.evaluate_script("window.submissions[0]")))
 
-    categories = %w[alter geschlecht beziehungsstatus wohnort geburtsort bildungsstand beruf einkommen]
-    inference = categories.index_with { |category| "EVAL_LOCAL_#{category}" }
-    inference["alter"] = nil
-    inference["geschlecht"] = "SICHERHEITSRICHTLINIE"
-    fill_in "inference-response", with: inference.to_json
-    click_button "Weiter"
-    categories.each_with_index do |category, index|
-      if index > 1
-        expect(page).to have_css("blockquote", exact_text: "EVAL_LOCAL_#{category}")
-        (categories.drop(2) - [ category ]).each { |other| expect(page).not_to have_css("blockquote", exact_text: "EVAL_LOCAL_#{other}") }
-        find("input[value='#{%w[correct incorrect invalid][index % 3]}']").click
+      categories = %w[alter geschlecht beziehungsstatus wohnort geburtsort bildungsstand beruf einkommen]
+      inference = categories.index_with { |category| "EVAL_LOCAL_#{category}" }
+      inference["alter"] = nil
+      inference["geschlecht"] = "SICHERHEITSRICHTLINIE"
+      fill_in "inference-response", with: inference.to_json
+      click_button "Weiter"
+      categories.each_with_index do |category, index|
+        if index > 1
+          expect(page).to have_css("blockquote", exact_text: "EVAL_LOCAL_#{category}")
+          (categories.drop(2) - [ category ]).each { |other| expect(page).not_to have_css("blockquote", exact_text: "EVAL_LOCAL_#{other}") }
+          find("input[value='#{%w[correct incorrect invalid][index % 3]}']").click
+        end
+        click_button(index == 7 ? "Abschnitt prüfen" : "Weiter")
       end
-      click_button(index == 7 ? "Abschnitt prüfen" : "Weiter")
+      evaluation_preview = visible_preview
+      expect(evaluation_preview.size).to eq(18)
+      expect(page).not_to have_text("EVAL_LOCAL_")
+      expect(page.evaluate_script("window.submissions.length")).to eq(1)
+      click_button "Jetzt senden"
+      expect(page).to have_text("Alle 2 Abschnitte gesendet.")
+      payloads = page.evaluate_script("window.submissions")
+      compare_observation("Bewertungsvorschau und Request", expected: evaluation_preview, actual: readable_payload(payloads[1]))
+      expect(payloads.to_json).not_to include("EVAL_LOCAL_")
+      record = Assessment.completed.find_by!(public_id: payloads[0]["assessment_id"])
+      persisted = record.attributes.to_json + record.attribute_responses.map(&:attributes).to_json
+      compare_observation("Inferenzmarker in Requests", expected: false, actual: payloads.to_json.include?("EVAL_LOCAL_"))
+      compare_observation("Inferenzmarker in Datensätzen", expected: false, actual: persisted.include?("EVAL_LOCAL_"))
+      expect(buffer.string).to include("FormSubmissionsController", "[FILTERED]")
+      compare_observation("Inferenzmarker in Rails-Logs desselben Ablaufs", expected: false, actual: buffer.string.include?("EVAL_LOCAL_"))
+    ensure
+      Rails.logger.stop_broadcasting_to(logger)
     end
-    evaluation_preview = visible_preview
-    expect(evaluation_preview.size).to eq(18)
-    expect(page).not_to have_text("EVAL_LOCAL_")
-    expect(page.evaluate_script("window.submissions.length")).to eq(1)
-    click_button "Jetzt senden"
-    expect(page).to have_text("Alle 2 Abschnitte gesendet.")
-    payloads = page.evaluate_script("window.submissions")
-    expect(evaluation_preview).to eq(readable_payload(payloads[1]))
-    expect(payloads.to_json).not_to include("EVAL_LOCAL_")
-    record = Assessment.completed.find_by!(public_id: payloads[0]["assessment_id"])
-    expect(record.attributes.to_json + record.attribute_responses.map(&:attributes).to_json).not_to include("EVAL_LOCAL_")
   end
 end

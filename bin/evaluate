@@ -45,12 +45,21 @@ fi
 step='Umgebungsnachweis'
 bundle exec ruby spec/evaluation/support/environment.rb 2>&1 | tee "$EVALUATION_OUTPUT_DIR/protocol.txt"
 step='RSpec-Evaluation'
-bundle exec rspec spec/evaluation --order defined --no-color \
+if bundle exec rspec spec/evaluation --order defined --no-color \
   --require ./spec/evaluation/support/formatter.rb \
   --format Evaluation::Formatter \
   --format json --out "$EVALUATION_OUTPUT_DIR/rspec.json" \
-  2>&1 | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+  2>&1 | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"; then
+  evaluation_status=0
+else
+  evaluation_status=$?
+fi
+if [[ ! -f "$EVALUATION_OUTPUT_DIR/evaluation.json" ]]; then
+  printf 'Kein vollständiger fachlicher Bericht erzeugt. Siehe protocol.txt.\n' >&2
+  exit 1
+fi
 step='Ergebnisdokumentation und Integrität des Softwarestands'
 bundle exec ruby spec/evaluation/support/result_documentation.rb 2>&1 | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
-printf '\nEvaluation abgeschlossen. Protokoll und strukturierte Ergebnisse: %s\n' "$EVALUATION_OUTPUT_DIR" | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+printf '\nEvaluation abgeschlossen (Exit %s). Protokoll und strukturierte Ergebnisse: %s\n' "$evaluation_status" "$EVALUATION_OUTPUT_DIR" | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
 printf 'Nicht untersuchte Nachweise bleiben ausdrücklich offen; siehe Anforderungsübersicht.\n' | tee -a "$EVALUATION_OUTPUT_DIR/protocol.txt"
+exit "$evaluation_status"
