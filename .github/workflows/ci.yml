@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  checks:
+    name: Tests and security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      RAILS_ENV: test
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
+        with:
+          bundler-cache: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2
+        id: chrome
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
+      - name: Expose browser at the paths used by the test suite
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          DRIVER_PATH: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: |
+          sudo ln -sf "$CHROME_PATH" /usr/bin/chromium
+          sudo ln -sf "$DRIVER_PATH" /usr/bin/chromedriver
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm audit --audit-level=high
+      - run: bin/test
+      - name: Requirement evaluation report
+        if: ${{ hashFiles('bin/evaluate') != '' }}
+        run: bin/evaluate
+      - name: Upload test logs and evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: test-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            log/test.log
+            tmp/evaluation/
+            tmp/screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  image:
+    name: Docker build and smoke test
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Validate release tag and ancestry
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git merge-base --is-ancestor HEAD origin/main
+      - name: Image coordinates
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: echo "name=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Build production image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          load: true
+          tags: alina:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test production container and compiled assets
+        run: |
+          docker run -d --name alina-smoke -p 127.0.0.1:8080:80 \
+            -e SECRET_KEY_BASE="$(openssl rand -hex 64)" alina:ci
+          trap 'docker logs alina-smoke; docker rm -f alina-smoke' EXIT
+          curl --fail --retry 20 --retry-delay 3 --retry-all-errors \
+            -H 'X-Forwarded-Proto: https' http://127.0.0.1:8080/up
+          curl --fail -H 'X-Forwarded-Proto: https' http://127.0.0.1:8080/ > /tmp/alina.html
+          asset=$(sed -n 's/.*src="\([^"]*\/vite\/assets\/[^"]*\.js\)".*/\1/p' /tmp/alina.html | head -1)
+          test -n "$asset"
+          curl --fail -H 'X-Forwarded-Proto: https' "http://127.0.0.1:8080$asset" > /dev/null
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish verified image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+          REF: ${{ github.ref }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          docker tag alina:ci "$IMAGE:sha-$GITHUB_SHA"
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          if [[ "$REF" == refs/heads/main ]]; then
+            docker tag alina:ci "$IMAGE:main"
+            docker push "$IMAGE:main"
+          else
+            docker tag alina:ci "$IMAGE:$TAG"
+            docker push "$IMAGE:$TAG"
+            docker tag alina:ci "$IMAGE:latest"
+            docker push "$IMAGE:latest"
+          fi
+
+  release:
+    name: GitHub Release
+    needs: image
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Publish release with generated notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:$RELEASE_TAG"
+          printf 'Production image: `%s`\n' "$image" > /tmp/release-notes.md
+          gh release create "$RELEASE_TAG" --verify-tag --generate-notes --notes-file /tmp/release-notes.md

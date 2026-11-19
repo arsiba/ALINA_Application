@@ -49,3 +49,12 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Local tools, evidence and assets must never enter the production image.
+/.agents
+/.codex
+/.aws
+/.idea
+/.githooks
+/spec
+/public/vite*
