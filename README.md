@@ -178,7 +178,7 @@ bin/test
 ```
 
 Runs linting, security analysis, the production frontend build, Rails checks, and
-RSpec. Chromium tests run when `spec/features` exists. Enable the pre-commit hook
+RSpec. Chromium tests run when `spec/evaluation/browser` exists. Run `bin/evaluate` for the requirement-based evaluation report; see [the evaluation documentation](spec/evaluation/README.md) and [criteria matrix](spec/evaluation/KRITERIEN.md). Enable the pre-commit hook
 once per clone with `git config --local core.hooksPath .githooks`.
 
 ---

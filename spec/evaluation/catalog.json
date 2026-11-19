@@ -1,0 +1,1337 @@
+[
+  {
+    "id": "AGG-01",
+    "title": "Unterhalb der Freigabeschwelle keine Kennzahlen liefern",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Schwelle 2; eine aktuelle abgeschlossene, eine offene und eine veraltete Befragung.",
+    "expected": "Nur available=false, Mindestzahl und Instrumentversion; keine Zähler oder Gruppen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-02",
+    "title": "Freigabe exakt an der Schwelle und Versionsfilter prüfen",
+    "requirements": [
+      "FA-11",
+      "QA-03",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Zwei aktuelle Abschlüsse, zusätzlich offene und alte Version.",
+    "expected": "2 Teilnehmer, 16 auswertbare Antworten, Gap 0, Bestätigungsquote 1; acht Kategorien mit je zwei Antworten.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-03",
+    "title": "Statusarten und beide Abweichungsrichtungen aggregieren",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "FA-11",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Zwei gleiche gemischte Befragungen mit Nicht-Ableitung, Verweigerung und Enthaltung.",
+    "expected": "16 Antworten, 12 auswertbar, 4 ausgeschlossen, 2 Unter-, 4 Überschätzungen, 6 Übereinstimmungen; Gap 0,5; Abdeckung 0,75.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-04",
+    "title": "Gepoolte Quote vom individuellen Mittelwert unterscheiden",
+    "requirements": [
+      "FA-11",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Person A: 8 Abweichungen bei 8 auswertbaren Kategorien; B: 0 bei 1.",
+    "expected": "Gepoolte Gap 8/9; ungewichteter Mittelwert der individuellen Gaps 0,5.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-05",
+    "title": "Nullnenner und Teilnehmer ohne auswertbare Antworten erfassen",
+    "requirements": [
+      "FA-11",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Zwei Befragungen mit je acht Verweigerungen.",
+    "expected": "Gap, Bestätigungsquote und individuelles Mittel nil; Abdeckung 0; zwei Personen ohne auswertbare Antworten.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-06",
+    "title": "Kleine Modell- und Altersgruppen gegen Differenzbildung schützen",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Zwei Personen in Gruppe A, eine in B; Schwelle 2.",
+    "expected": "Beide Gruppenaufschlüsselungen gesperrt; kleine Gruppenbezeichnungen fehlen auch im serialisierten Ergebnis.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-07",
+    "title": "Ausreichend große Gruppen oberhalb der Gesamtschwelle freigeben",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Je zwei Personen in zwei Modell- und Altersgruppen.",
+    "expected": "Beide Gruppen freigegeben; korrekte Gruppenzahlen und Gap 1/8 im veränderten Fall; keine individuellen Kennungen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-08",
+    "title": "Kleine Altersgruppe mit einer ergänzenden Gruppe unterdrücken",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Altersgruppen mit 1, 2 und 3 Personen; Schwelle 2.",
+    "expected": "Nur Gruppe mit 3 Personen veröffentlicht; 1er- und ergänzende 2er-Gruppe verborgen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-09",
+    "title": "Große Altersgruppe bei ausreichend großem verborgenem Rest erhalten",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "Eine 2er-Gruppe und zwei verschiedene 1er-Gruppen.",
+    "expected": "2er-Gruppe sichtbar; beide kleinen Gruppen verborgen, ihr gemeinsamer Rest erreicht die Schwelle.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "AGG-10",
+    "title": "Offene und veraltete Fälle nicht zur Gruppenschwelle zählen",
+    "requirements": [
+      "FA-11",
+      "QA-03",
+      "DS-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Service-Spec",
+    "given": "2 aktuelle Abschlüsse in A; 1 aktueller, 1 offener und 1 alter Fall in B.",
+    "expected": "Altersgruppenaufschlüsselung bleibt gesperrt.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/services/assessment_results_spec.rb"
+  },
+  {
+    "id": "CFG-01",
+    "title": "Positive ganzzahlige Freigabeschwelle übernehmen",
+    "requirements": [
+      "DS-03"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Konfigurationstest",
+    "given": "Konfiguration RESULTS_MIN_PARTICIPANTS=27.",
+    "expected": "Konfigurierte Mindestzahl ist 27.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/configuration/results_spec.rb"
+  },
+  {
+    "id": "CFG-02",
+    "title": "Ungültige Freigabeschwellen beim Start zurückweisen",
+    "requirements": [
+      "DS-03",
+      "QA-05"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Konfigurationstest",
+    "given": "Werte 0, -1, 1.5, invalid und leer.",
+    "expected": "Jeder Wert löst ArgumentError aus; Schwelle wird nicht stillschweigend deaktiviert.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/configuration/results_spec.rb"
+  },
+  {
+    "id": "COOKIE-01",
+    "title": "Erstbesuch ohne Teilnahmecookie und mit booleschem Status",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Erster Request auf /cookies.",
+    "expected": "Kein Teilnahmecookie; participated=false; Dauer 30 Tage; no-store.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-02",
+    "title": "Nach Abschluss ausschließlich zeitlich begrenztes Teilnahmeflag setzen",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Basis und Bewertung erfolgreich absenden.",
+    "expected": "Erst nach Abschluss alina_participated=1; HttpOnly, SameSite=Lax, Path=/, 30 Tage; keine Kennung oder Ergebnisdaten im Cookie.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-03",
+    "title": "Neue Befragung im markierten Browser unterbinden",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Nach Abschluss neue Befragungskennung senden.",
+    "expected": "HTTP 409; keine neue Befragung; Cookie nicht erneuert.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-04",
+    "title": "Offene Altbefragung nicht zum Umgehen der Teilnahmesperre nutzen",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Zwei offene Befragungen; eine abschließen, dann zweite bewerten.",
+    "expected": "Zweite Bewertung HTTP 409; Altbefragung bleibt offen.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-05",
+    "title": "Wiederholungen ohne Verlängerung der Cookielaufzeit erlauben",
+    "requirements": [
+      "DS-04",
+      "FA-13"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Nach Abschluss identische Basis und Bewertung wiederholen.",
+    "expected": "HTTP 200; genau eine Befragung; kein erneuter Set-Cookie-Header.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-06",
+    "title": "Bei offenen und fehlerhaften Fällen kein Teilnahmeflag setzen",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Bewertung ohne Basis; danach Basis und unvollständige Bewertung.",
+    "expected": "HTTP 404 bzw. 422; kein Teilnahmecookie.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "COOKIE-07",
+    "title": "Teilnahmeflag bei HTTPS mit Secure schützen",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Cookie-Verhalten)",
+    "given": "Erfolgreicher Abschluss über HTTPS im Request-Test.",
+    "expected": "Cookie enthält Secure, HttpOnly und SameSite=Lax.",
+    "limit": "Browsergebundene Teilnahmebegrenzung; kein Nachweis einer eindeutigen Person oder vollständiger Anonymität.",
+    "file": "spec/evaluation/requests/participation_cookies_spec.rb"
+  },
+  {
+    "id": "FLOW-01",
+    "title": "Hinweise vor Basisdaten und Rücknavigation ohne Übertragung",
+    "requirements": [
+      "FA-01",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "/form öffnen, zu Basisdaten wechseln und zurückkehren.",
+    "expected": "Hinweise zuerst; Basisdaten zunächst verborgen; kein erfasster fetch-Payload.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-02",
+    "title": "Workflow bei fünf Fensterbreiten auf Überlauf und Schaltflächen prüfen",
+    "requirements": [
+      "QA-06"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Hinweise, Basis, Erwartungen, Vorschau, Import und Bewertung bei 320/375/640/768/1280 px.",
+    "expected": "Kein horizontaler Dokumentüberlauf; sichtbare Hauptschaltflächen mindestens 44 CSS-Pixel hoch.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-03",
+    "title": "Einzelfragen, Pflichtantwort und Rücknavigation prüfen",
+    "requirements": [
+      "FA-01",
+      "FA-02",
+      "QA-03",
+      "QA-05"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Ohne Antwort Weiter klicken; dann Ja wählen, weiter und zurück.",
+    "expected": "Frage ohne Antwort nicht verlassen; genau ein fieldset; vorherige Ja-Antwort erhalten; keine Übertragung.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-04",
+    "title": "Vollständigen Ablauf mit lokalem Inferenzmarker durchlaufen",
+    "requirements": [
+      "FA-01",
+      "FA-02",
+      "FA-04",
+      "FA-07",
+      "FA-08",
+      "FA-12",
+      "FA-13",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Acht Ja-Erwartungen; acht LOCAL_SECRET-Inferenzen als correct bewerten.",
+    "expected": "Genau zwei Abschnitts-POSTs; korrekte Statuswerte; Marker weder in Payloads noch Vorschau/Ergebnis; persönlicher Score 100; Abschluss bestätigt.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-05",
+    "title": "Nicht-Ableitung und Verweigerung im Workflow unterscheiden",
+    "requirements": [
+      "FA-04",
+      "FA-06",
+      "FA-08",
+      "FA-09",
+      "FA-10",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "alter=null; geschlecht=SICHERHEITSRICHTLINIE; übrige Angaben correct.",
+    "expected": "Nicht-Ableitung als Überschätzung; Verweigerung ausgeschlossen; Statuscodes ohne konkrete Werte übertragen; Score 6/7 bzw. 85,7 %.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-06",
+    "title": "Persönlichen Score erst nach Erfolg zeigen und bei Reload verwerfen",
+    "requirements": [
+      "FA-09",
+      "QA-05",
+      "DS-01",
+      "DS-04"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Schwelle 100; vor Abschluss Serverfehler simulieren, erneut senden, Seite neu laden.",
+    "expected": "Score erst nach Erfolg; unabhängig von öffentlicher Schwelle; HttpOnly-Teilnahmeflag; Score nach Reload weg, nicht in Historydaten.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-07",
+    "title": "Bei vollständig ausgeschlossenen Antworten keinen persönlichen Score anzeigen",
+    "requirements": [
+      "FA-08",
+      "FA-09",
+      "QA-04"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Acht Sicherheitsverweigerungen importieren und abschließen.",
+    "expected": "Alle Bewertungen automatisch invalid; Score Nicht berechenbar; 8 ausgeschlossen.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-08-editing",
+    "title": "Abbruch aus editing verwirft ungesendete Angaben",
+    "requirements": [
+      "FA-01",
+      "QA-05",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Abbruch im Zustand editing.",
+    "expected": "Abbruch bestätigt; keine Basisfelder oder Sendeschaltfläche; keine Übertragung.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-08-review",
+    "title": "Abbruch aus review verwirft ungesendete Angaben",
+    "requirements": [
+      "FA-01",
+      "QA-05",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Abbruch im Zustand review.",
+    "expected": "Abbruch bestätigt; keine Basisfelder oder Sendeschaltfläche; keine Übertragung.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-09",
+    "title": "Serverfehler erhält Vorschau und erlaubt Wiederholung",
+    "requirements": [
+      "FA-12",
+      "QA-05"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Basisvorschau senden; HTTP 422 simulieren; danach erneut ohne Fehler senden.",
+    "expected": "Fehler sichtbar; Vorschau und aktive Sendeschaltfläche erhalten; erst erfolgreicher Retry öffnet Import.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-10",
+    "title": "Laufende Anfrage abbrechen und spätes Weitergehen verhindern",
+    "requirements": [
+      "FA-01",
+      "QA-05"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Fetch bleibt offen; während des Sendens abbrechen.",
+    "expected": "Senden während Anfrage gesperrt; Abbruchhinweis erklärt möglichen Empfang; Import öffnet nicht; ein Sendeversuch erfasst.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-11",
+    "title": "Ungültige LLM-Antworten lokal zurückweisen",
+    "requirements": [
+      "FA-05",
+      "QA-05",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Nicht-JSON und JSON nur mit alter importieren.",
+    "expected": "Fehlermeldung; Importansicht bleibt; keine weitere Übertragung.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-12",
+    "title": "Importierten Entwurf beim Abbruch verwerfen",
+    "requirements": [
+      "FA-01",
+      "QA-05",
+      "DS-01"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium, echtes JavaScript",
+    "given": "Basis gesendet; LOCAL_SECRET ins Importfeld einfügen und abbrechen.",
+    "expected": "Importfeld und Marker verschwinden; nur der bereits gesendete Abschnitt bleibt dokumentiert.",
+    "limit": "Automatisierter Browserablauf mit synthetischen Antworten; kein Nutzertest und keine echte externe LLM-Sitzung. Fensterbreiten sind keine realen Mobilgeräte.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-13",
+    "title": "Einheitlichen, unveränderbaren Prompt der Instrumentversion bereitstellen",
+    "requirements": [
+      "FA-03",
+      "QA-03",
+      "QA-04"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Basisabschnitt abschließen; Prompt im Importformular auslesen und mit eingefrorener Referenz prompt_v1.txt vergleichen.",
+    "expected": "Prompt ist readonly und stimmt zeichengetreu mit Referenz überein; Aufruf überträgt keine weitere Befragungsantwort.",
+    "limit": "Prüft Bereitstellung und Textgleichheit; nicht Befolgung oder Inferenzqualität des externen LLMs.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "FLOW-14",
+    "title": "Sichtbare Vorschau vollständig mit beiden tatsächlichen Payloads abgleichen",
+    "requirements": [
+      "FA-06",
+      "FA-07",
+      "FA-08",
+      "FA-12",
+      "FA-13",
+      "DS-01"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "Capybara/Selenium; sichtbare DOM-Vorschau gegen erfasste fetch-Bodies und Datenbank",
+    "given": "Basisvorschau mit 12 Blattwerten; Bewertungsabschnitt mit 18 Blattwerten; null, Verweigerung, unterschiedliche Bewertungen und kategoriespezifische Marker.",
+    "expected": "Alle sichtbaren Pfade/Werte entsprechen nach dokumentierter Beschriftungsübersetzung exakt den gesendeten Payloads; jeweils nur aktuelle Kategorie angezeigt; kein Marker in Payload oder gespeicherten Datensätzen.",
+    "limit": "Erfasst fetch-Aufrufe dieses Ablaufs; keine vollständige Netzwerkanalyse aller Browserkanäle oder Infrastrukturlogs.",
+    "file": "spec/evaluation/browser/form_workflow_spec.rb"
+  },
+  {
+    "id": "JS-01",
+    "title": "Vollständige Übereinstimmung ergibt 100 Prozent, vollständige Abweichung null",
+    "requirements": [
+      "FA-09",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Acht Ja-Erwartungen; alle Bewertungen einmal correct, einmal incorrect.",
+    "expected": "Score 1 bzw. 0.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-02",
+    "title": "Nicht-Ableitung ist je nach Erwartung Überschätzung oder Übereinstimmung",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Acht not_inferred/invalid-Antworten, Erwartungen einmal yes, einmal no.",
+    "expected": "Bei yes: Score 0, acht Überschätzungen; bei no: Score 1, acht Übereinstimmungen.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-03",
+    "title": "Gemischter Fall verwendet sechs auswertbare Antworten als gemeinsamen Nenner",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Acht Antworten: eine Nicht-Ableitung, eine Verweigerung, eine Enthaltung, eine Unterschätzung und zwei Überschätzungen.",
+    "expected": "6 auswertbar, 2 ausgeschlossen; Score und Gap 0,5; Richtungen 1/6 und 2/6; drei Übereinstimmungen.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-04",
+    "title": "Vollständig ausgeschlossene Antworten ergeben undefinierte Quoten",
+    "requirements": [
+      "FA-09",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Je acht refused/invalid bzw. provided/invalid-Antworten.",
+    "expected": "Score und Gap null; 0 auswertbare Kategorien.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-05",
+    "title": "Acht festgelegte Kategorien in einheitlicher Reihenfolge",
+    "requirements": [
+      "FA-02",
+      "FA-06",
+      "QA-03"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Exportierte Frontend-Kategorien mit unabhängig festgelegter Reihenfolge vergleichen.",
+    "expected": "Exakt alter, geschlecht, beziehungsstatus, wohnort, geburtsort, bildungsstand, beruf, einkommen.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-06",
+    "title": "Import ordnet unterschiedliche Werte anhand der Schlüssel zu",
+    "requirements": [
+      "FA-04",
+      "FA-06"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "Gültige Antwort mit unterschiedlichem synthetischem Wert pro Kategorie und umgekehrter Schlüsselreihenfolge.",
+    "expected": "Alle Werte werden ihrer ursprünglichen Kategorie zugeordnet.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-07",
+    "title": "null und Verweigerung bleiben unterscheidbare Statusarten",
+    "requirements": [
+      "FA-04",
+      "FA-05",
+      "FA-08"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test der echten Frontendfunktion",
+    "given": "alter=null; geschlecht=SICHERHEITSRICHTLINIE; beruf synthetischer Text.",
+    "expected": "Statuswerte not_inferred, refused und provided.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-08",
+    "title": "Syntaxfehler wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Unvollständiges JSON: {.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-09",
+    "title": "Markdown-Codeblock wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Gültiges JSON in Markdown-Codeblock.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-10",
+    "title": "Begleittext wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Gültiges JSON mit vorangestelltem Antworttext.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-11",
+    "title": "Fehlende Kategorie wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Schlüssel alter entfernt.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-12",
+    "title": "Zusätzliche Kategorie wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Zusätzlicher Schlüssel unbekannt.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-13",
+    "title": "Unbekannte Ersatzkategorie wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter durch unbekannt ersetzt; Schlüsselanzahl bleibt acht.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-14",
+    "title": "Zahl als Attributwert wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter=34 (Zahl).",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-15",
+    "title": "Boolean als Attributwert wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter=true.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-16",
+    "title": "Objekt als Attributwert wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter als verschachteltes Objekt.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-17",
+    "title": "Array als Attributwert wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter als Array.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-18",
+    "title": "Leerer Attributtext wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter als leerer String.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-19",
+    "title": "Nur Leerraum als Attributtext wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter enthält nur drei Leerzeichen.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-20",
+    "title": "Attributtext über 2000 Zeichen wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "alter enthält 2001 Zeichen.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-21",
+    "title": "Array statt JSON-Objekt wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Gesamte Antwort [].",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-22",
+    "title": "null statt JSON-Objekt wird zurückgewiesen",
+    "requirements": [
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec startet genau einen Node-Test von parseInference",
+    "given": "Gesamte Antwort null.",
+    "expected": "Parser löst einen Fehler aus; ungültige Antwort wird nicht als Importergebnis akzeptiert.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-23",
+    "title": "Genau 2000 Zeichen werden angenommen",
+    "requirements": [
+      "FA-04",
+      "FA-05",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "Node-Test von parseInference",
+    "given": "Vollständige Antwort mit 2000 Zeichen im Feld alter.",
+    "expected": "Import unverändert erfolgreich; Grenze unterscheidet sich von 2001 Zeichen.",
+    "limit": "Nachweis gilt für die festgelegten Testfälle; keine allgemeine Aussage über alle möglichen Eingaben.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "JS-24",
+    "title": "Prompt entspricht der dokumentierten Instrumentversion",
+    "requirements": [
+      "FA-03",
+      "FA-05",
+      "QA-03",
+      "QA-04"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Node-Test von Prompt und Importvertrag",
+    "given": "Exportierten Prompt mit eingefrorener Referenz vergleichen; abschließendes JSON-Schema parsen.",
+    "expected": "Prompt zeichengetreu gleich; Schema besitzt genau die acht festgelegten Schlüssel und ist importierbar.",
+    "limit": "Kein Nachweis, dass ein externes LLM das Format tatsächlich einhält.",
+    "file": "spec/evaluation/frontend/javascript_spec.rb"
+  },
+  {
+    "id": "MAN-01",
+    "title": "Bedienbarkeit ohne technische Kenntnisse und ohne Unterstützung",
+    "requirements": [
+      "QA-01",
+      "QA-02"
+    ],
+    "section": "E – Ergänzende Nachweise und Aussagegrenzen",
+    "method": "Nutzungstest mit Personen aus der definierten Zielgruppe; Aufgaben ohne Hilfestellung, Hilfebedarf, Abbrüche und Verständnisprobleme dokumentieren.",
+    "given": "Repräsentative Aufgaben und vorab festgelegte Erfolgskriterien erforderlich.",
+    "expected": "Nicht untersucht: Es wurde kein Nutzungstest mit Zielgruppenpersonen durchgeführt.",
+    "limit": "Wird ausdrücklich als NICHT UNTERSUCHT ausgegeben; kein positiver Erfüllungsnachweis.",
+    "file": "spec/evaluation/limitations/manual_spec.rb"
+  },
+  {
+    "id": "MAN-02",
+    "title": "Kompatibilität mit weiteren Browsern und realen Geräten",
+    "requirements": [
+      "QA-06"
+    ],
+    "section": "E – Ergänzende Nachweise und Aussagegrenzen",
+    "method": "Vorab definierte Browser-/Gerätematrix vollständig durchlaufen, einschließlich realer Touchbedienung.",
+    "given": "Versionen und Geräte benennen; dieselben Kernaufgaben verwenden.",
+    "expected": "Nicht untersucht: Automatisierte Prüfung beschränkt sich auf Headless Chromium und CSS-Fensterbreiten.",
+    "limit": "Wird ausdrücklich als NICHT UNTERSUCHT ausgegeben; kein positiver Erfüllungsnachweis.",
+    "file": "spec/evaluation/limitations/manual_spec.rb"
+  },
+  {
+    "id": "MAN-03",
+    "title": "Skalierung sowie Wartungs- und Betreuungsaufwand",
+    "requirements": [
+      "QA-07"
+    ],
+    "section": "E – Ergänzende Nachweise und Aussagegrenzen",
+    "method": "Getrennte Last- und Betriebsuntersuchung: parallele Befragungen, Antwortzeiten, Fehlerrate und Ressourcen; Betreuungszeit je Teilnehmerzahl.",
+    "given": "Zielgröße, Parallelität, Beobachtungszeit und Akzeptanzgrenzen müssen vorab festgelegt werden.",
+    "expected": "Nicht untersucht: Keine Lastmessung oder Erhebung des tatsächlichen Betreuungsaufwands.",
+    "limit": "Wird ausdrücklich als NICHT UNTERSUCHT ausgegeben; kein positiver Erfüllungsnachweis.",
+    "file": "spec/evaluation/limitations/manual_spec.rb"
+  },
+  {
+    "id": "MAN-04",
+    "title": "Praktischer Durchlauf mit tatsächlich erzeugter LLM-Antwort",
+    "requirements": [
+      "FA-03",
+      "FA-04",
+      "QA-04"
+    ],
+    "section": "E – Ergänzende Nachweise und Aussagegrenzen",
+    "method": "Prompt manuell in realer LLM-Sitzung verwenden und unveränderte Antwort importieren; Kontext, Modell, Zeitpunkt und nötige Korrekturen protokollieren.",
+    "given": "Echte Sitzung erforderlich; keine konkreten personenbezogenen Inhalte in den öffentlichen Anhang übernehmen.",
+    "expected": "Nicht untersucht: Suite verwendet synthetische Antworten; kein realer LLM-Durchlauf ausgeführt.",
+    "limit": "Wird ausdrücklich als NICHT UNTERSUCHT ausgegeben; kein positiver Erfüllungsnachweis.",
+    "file": "spec/evaluation/limitations/manual_spec.rb"
+  },
+  {
+    "id": "MOD-01",
+    "title": "Acht Erwartungen speichern und offene Antworten unterscheiden",
+    "requirements": [
+      "FA-02",
+      "FA-13",
+      "QA-03"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Neue Befragung mit acht Ja-Erwartungen, ohne Bewertung.",
+    "expected": "Acht Datensätze; Antwortstatus bleibt SQL NULL; keine abgeschlossene Befragung und keine Auswertung.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-02",
+    "title": "Vollständigen und eindeutigen Kategoriensatz erzwingen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Abschluss ohne Bewertungen; anschließend doppelte statt vollständiger Kategorien.",
+    "expected": "Beide Zustände sind ungültig.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-03",
+    "title": "Gemischten Einzelfall gegen feste Sollwerte prüfen",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Acht Antworten: 2 Nicht-Ableitungen, 1 Verweigerung, 1 Enthaltung, korrekte und falsche Angaben.",
+    "expected": "6 auswertbar, 2 ausgeschlossen; 1 Unter-, 2 Überschätzungen; Gap 3/6; Richtungen 1/6 und 2/6.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-04",
+    "title": "Bei ausschließlich ausgeschlossenen Antworten keine Quote berechnen",
+    "requirements": [
+      "FA-09",
+      "FA-10",
+      "QA-04"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Acht Verweigerungen mit Bewertung invalid.",
+    "expected": "0 auswertbar, 8 ausgeschlossen; Gap und beide Richtungsquoten nil.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-05",
+    "title": "Datenbank schützt Eindeutigkeit und konsistente Bewertungen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Direkte DB-Schreibversuche mit doppelter Kategorie, ungültigem Fremdschlüssel und inkonsistentem Status.",
+    "expected": "Datenbank weist alle vier ungültigen Änderungen mit Fehler zurück.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "MOD-06",
+    "title": "Beim Löschen keine verwaisten Kategorieantworten hinterlassen",
+    "requirements": [
+      "FA-13"
+    ],
+    "section": "A – Korrektheit der Auswertung",
+    "method": "RSpec Model-Spec",
+    "given": "Gespeicherte Befragung mit acht Antworten wird gelöscht.",
+    "expected": "Genau acht zugehörige Kategorieantworten werden mitgelöscht.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/models/assessment_spec.rb"
+  },
+  {
+    "id": "NOTICE-01",
+    "title": "Cookiehinweis ohne zusätzliche Browserpersistenz bestätigen",
+    "requirements": [
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Startseite öffnen, Hinweis bestätigen, intern navigieren und neu laden.",
+    "expected": "Hinweis nennt Dauer; keine alina-Cookies vor Teilnahme; localStorage/sessionStorage leer; Hinweis nach Reload erneut sichtbar.",
+    "limit": "Technische Inhalts-, Fokus- und Layoutprüfung; keine rechtliche Bewertung und kein Nachweis allgemeiner Gebrauchstauglichkeit.",
+    "file": "spec/evaluation/browser/cookie_notice_spec.rb"
+  },
+  {
+    "id": "NOTICE-02",
+    "title": "Cookiehinweis erneut öffnen und Fokusübergabe prüfen",
+    "requirements": [
+      "DS-04",
+      "QA-01"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Hinweis bestätigen, erneut öffnen, schließen und Informationsseite aufrufen.",
+    "expected": "Fokus auf Überschrift bzw. Auslöser; Informationsseite beschreibt Flag und Browserbindung. Klicktest prüft Fokus, keine vollständige Tastaturbedienung.",
+    "limit": "Technische Inhalts-, Fokus- und Layoutprüfung; keine rechtliche Bewertung und kein Nachweis allgemeiner Gebrauchstauglichkeit.",
+    "file": "spec/evaluation/browser/cookie_notice_spec.rb"
+  },
+  {
+    "id": "NOTICE-03",
+    "title": "Cookiehinweis bei schmalen und breiten Fenstern prüfen",
+    "requirements": [
+      "QA-06",
+      "DS-04"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Fensterbreiten 320/375/768/1280 px.",
+    "expected": "Kein horizontaler Dokumentüberlauf; Screenshots werden erstellt.",
+    "limit": "Technische Inhalts-, Fokus- und Layoutprüfung; keine rechtliche Bewertung und kein Nachweis allgemeiner Gebrauchstauglichkeit.",
+    "file": "spec/evaluation/browser/cookie_notice_spec.rb"
+  },
+  {
+    "id": "OUT-01",
+    "title": "Gesperrte Ergebnisse auch im HTTP-Payload schützen",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Inertia-Antwort)",
+    "given": "Keine Abschlüsse; Schwelle 37; Inertia-Request auf /result.",
+    "expected": "HTTP 200; nur Sperrstatus, Mindestzahl 37 und Version; Cache-Control enthält no-store.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/results_spec.rb"
+  },
+  {
+    "id": "OUT-02",
+    "title": "Freigabeschwelle nicht durch URL-Parameter umgehen lassen",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Inertia-Antwort)",
+    "given": "Request mit minimum_participants=0 und individueller Kennung.",
+    "expected": "Nur Sperrinformation; keine individuellen oder aggregierten Ergebnisse.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/results_spec.rb"
+  },
+  {
+    "id": "OUT-03",
+    "title": "Kleine und ergänzende Altersgruppen aus Serverantwort entfernen",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "RSpec Request-Spec (Inertia-Antwort)",
+    "given": "Altersgruppen 1/2/3 Personen; Schwelle 2; tatsächlichen Inertia-Response prüfen.",
+    "expected": "Gesamtzahl 6; nur 3er-Gruppe sichtbar; keine verborgenen Labels oder individuellen Kennungen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/results_spec.rb"
+  },
+  {
+    "id": "REQ-01",
+    "title": "Basisdaten und Erwartungen gemeinsam persistieren",
+    "requirements": [
+      "FA-02",
+      "FA-13"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Gültiger baseline-POST mit Altersgruppe, Modell und acht Erwartungen.",
+    "expected": "HTTP 200; accepted=true; genau 1 Befragung und 8 Antworten; Instrumentversion gesetzt, Abschluss offen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-02",
+    "title": "Nicht-Ableitung, Verweigerung und Enthaltung getrennt speichern",
+    "requirements": [
+      "FA-08",
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Gültige Basis, danach Bewertung mit je einer Nicht-Ableitung, Verweigerung und Enthaltung.",
+    "expected": "HTTP 200; Abschluss vorhanden; Statuszähler je 1; 6 auswertbar, 1 Überschätzung.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-03",
+    "title": "Identische Wiederholungen idempotent verarbeiten",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Basis und Bewertung wiederholt senden; Kennung zusätzlich in Großschreibung.",
+    "expected": "HTTP 200; keine zusätzlichen Antworten oder Befragungen; Abschlusszeit unverändert.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-04",
+    "title": "Bereits gespeicherte Antworten vor Überschreiben schützen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Nach Basis und Abschluss abweichende Erwartung bzw. Bewertung senden.",
+    "expected": "HTTP 409; ursprüngliche Bewertung bleibt correct.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-05",
+    "title": "Bewertung ohne Basis ablehnen",
+    "requirements": [
+      "FA-01",
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "evaluation-POST mit unbekannter Befragungskennung.",
+    "expected": "HTTP 404; keine Befragung und keine Antworten entstehen.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-06",
+    "title": "Unvollständige und unbekannte Kategorien atomar ablehnen",
+    "requirements": [
+      "FA-02",
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Erwartung alter fehlt; anschließend unbekannte Ersatzkategorie.",
+    "expected": "HTTP 422 in beiden Fällen; keine Teilpersistenz.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-07",
+    "title": "Unzulässiges LLM in Basisdaten ablehnen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Modellwert unexpected.",
+    "expected": "HTTP 422.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-08",
+    "title": "Ungültige Bewertungsstrukturen ohne Änderung ablehnen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Sechs Varianten: Status fehlt, null, unbekannt; Bewertung unbekannt; Nicht-Ableitung oder Verweigerung mit correct.",
+    "expected": "Je HTTP 422; keine Bewertung gespeichert und kein Abschluss.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-09",
+    "title": "Bei Speicherfehler den gesamten Bewertungsabschnitt zurückrollen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Eingespritzter ActiveRecord-Fehler beim Speichern der Kategorie einkommen.",
+    "expected": "HTTP 422; auch vorher im selben Request geänderte Bewertungen zurückgerollt; kein Abschluss.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-10",
+    "title": "Zusätzliche konkrete Inferenzdaten serverseitig ablehnen",
+    "requirements": [
+      "FA-13",
+      "DS-01"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Zusätzliches inference-Feld mit synthetischem Marker in beiden Abschnitten.",
+    "expected": "HTTP 422 für beide unzulässigen Payloads.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-11",
+    "title": "Parameterfilter für sensible Requestdaten prüfen",
+    "requirements": [
+      "DS-02"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "data.inference=LOCAL_SECRET und Befragungskennung durch konfigurierten Parameterfilter geben.",
+    "expected": "Beide Werte werden [FILTERED]. Dies prüft den Filter, nicht sämtliche Betriebslogs.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-12",
+    "title": "Ungültige Befragungskennungen zurückweisen",
+    "requirements": [
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Kennung als ungültiger String, null, Array und Objekt.",
+    "expected": "Je HTTP 422.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-13",
+    "title": "Unbekannte Schritte und falsche Datenstrukturen zurückweisen",
+    "requirements": [
+      "FA-01",
+      "FA-13",
+      "QA-05"
+    ],
+    "section": "B – Zuverlässigkeit der Verarbeitung",
+    "method": "RSpec Request-Spec (HTTP und Testdatenbank)",
+    "given": "Unbekannter Schritt; Daten als String oder null; ratings als Array.",
+    "expected": "Je HTTP 422.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "REQ-14",
+    "title": "Tatsächliche Rails-Requestlogs enthalten keine gesendeten Inferenzmarker",
+    "requirements": [
+      "FA-13",
+      "DS-01",
+      "DS-02"
+    ],
+    "section": "C – Einhaltung des Datenflusses",
+    "method": "Request-Spec mit zusätzlichem Rails-Logziel im Arbeitsspeicher",
+    "given": "Unzulässigen Inferenzmarker senden; anschließend gültige Basis senden; tatsächlich erzeugte Rails-Logs und gespeicherte Datensätze prüfen.",
+    "expected": "Ungültiger POST 422, gültiger POST 200; Controllername und [FILTERED] vorhanden; Inferenzmarker fehlt in allen erfassten Logs und in der DB; Marker und Kennung fehlen in den Parameter-Logzeilen.",
+    "limit": "Gilt für Rails-Anwendungslogs dieser Requests. SQL-Debuglogs können gespeicherte Befragungskennungen enthalten; diese Prüfung behauptet keine vollständige Kennungsfreiheit. Proxy-, Hosting- und externe Logs werden nicht untersucht.",
+    "file": "spec/evaluation/requests/form_submissions_spec.rb"
+  },
+  {
+    "id": "UI-01",
+    "title": "Gesperrte Ergebnisansicht mit Methodenerklärung anzeigen",
+    "requirements": [
+      "FA-11",
+      "QA-04",
+      "DS-03"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Eine abgeschlossene Befragung; Schwelle 2.",
+    "expected": "Schwellenhinweis und Methodenlink sichtbar; Kennzahlen und Gruppen fehlen auch in Inertia-Props.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/browser/results_spec.rb"
+  },
+  {
+    "id": "UI-02",
+    "title": "Kennzahlen und interaktive Gruppenansicht auf Desktop und schmalen Fenstern prüfen",
+    "requirements": [
+      "FA-11",
+      "QA-06",
+      "DS-03"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Vier gemischte Befragungen in zwei ausreichend großen Gruppen.",
+    "expected": "16/32 Abweichungen; acht Kategorien umschalt- und sortierbar; Gruppen sichtbar; kein Überlauf bei 320/375/768/1280 px.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/browser/results_spec.rb"
+  },
+  {
+    "id": "UI-03",
+    "title": "Undefinierte öffentliche Quoten verständlich kennzeichnen",
+    "requirements": [
+      "FA-11",
+      "QA-04"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Zwei Abschlüsse ohne auswertbare Antworten.",
+    "expected": "Dreimal Nicht berechenbar mit 0 von 0; kein NaN.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/browser/results_spec.rb"
+  },
+  {
+    "id": "UI-04",
+    "title": "Unzureichend große Gruppen auch in der Oberfläche zurückhalten",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "2er- und 1er-Gruppe bei Schwelle 2.",
+    "expected": "Gruppenfreigabe erklärt; keine Tabelle oder verborgenen Labels.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/browser/results_spec.rb"
+  },
+  {
+    "id": "UI-05",
+    "title": "Ergänzende Altersgruppenunterdrückung korrekt darstellen",
+    "requirements": [
+      "FA-11",
+      "DS-03"
+    ],
+    "section": "D – Durchführbarkeit und Nachvollziehbarkeit",
+    "method": "Capybara/Selenium, Headless Chromium",
+    "given": "Altersgruppen 1/2/3 Personen.",
+    "expected": "Nur 3er-Gruppe sichtbar; Hinweis auf Mindestgröße; keine individuelle Ergebnisansicht.",
+    "limit": "Nachweis gilt für die definierten synthetischen Fälle und die dokumentierte Testumgebung.",
+    "file": "spec/evaluation/browser/results_spec.rb"
+  }
+]

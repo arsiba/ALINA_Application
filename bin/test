@@ -31,7 +31,7 @@ if [[ ! -x node_modules/.bin/vite ]]; then
 fi
 
 # Browser dependencies are only needed once feature specs are present.
-if [[ -d spec/features ]]; then
+if [[ -d spec/evaluation/browser ]]; then
   for browser_tool in /usr/bin/chromium /usr/bin/chromedriver; do
     if [[ ! -x "$browser_tool" ]]; then
       printf 'Missing browser test prerequisite: %s\n' "$browser_tool" >&2
@@ -52,14 +52,13 @@ export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-$PWD/tmp/rubocop}"
 run "Check Ruby dependencies (run bundle install first if needed)" bundle check
 run "Ruby linting" bundle exec rubocop --no-parallel
 run "Security analysis" bundle exec brakeman --no-pager
-run "Personal awareness score" node --test spec/frontend/*.test.js
 # Build once, then exercise the same production assets in the browser tests.
 run "Frontend production build" env RAILS_ENV=production RACK_ENV=production npm run build
 run "Prepare test database" bin/rails db:prepare
 run "Check Rails autoloading" bin/rails zeitwerk:check
-if [[ -d spec/features ]]; then
-  run "RSpec without browser" bundle exec rspec --exclude-pattern 'spec/features/**/*_spec.rb' --format progress
-  run "RSpec with Chromium" bundle exec rspec spec/features --format progress
+if [[ -d spec/evaluation/browser ]]; then
+  run "RSpec without browser" bundle exec rspec --exclude-pattern 'spec/evaluation/browser/**/*_spec.rb' --format progress
+  run "RSpec with Chromium" bundle exec rspec spec/evaluation/browser --format progress
 else
   run "RSpec" bundle exec rspec --format progress
 fi

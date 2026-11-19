@@ -4,6 +4,7 @@ require_relative "../support/browser"
 RSpec.describe "Results page", type: :feature do
   before do
     Capybara.current_driver = :assessment_chrome
+    resize_evaluation_viewport(1280)
     allow(Rails.application.config.x).to receive(:results_min_participants).and_return(2)
   end
 
@@ -19,7 +20,7 @@ RSpec.describe "Results page", type: :feature do
     end
   end
 
-  it "explains the threshold without publishing results before enough completions exist" do
+  it "[UI-01] Gesperrte Ergebnisansicht mit Methodenerklärung anzeigen" do
     assessment
     visit "/result"
     expect(page).to have_text("Ergebnisse ab 2 abgeschlossenen Teilnahmen")
@@ -33,7 +34,7 @@ RSpec.describe "Results page", type: :feature do
     expect(page.evaluate_script("JSON.parse(document.querySelector('[data-page]').dataset.page).props.results").keys).to contain_exactly("available", "minimum_participants", "instrument_version")
   end
 
-  it "shows the metrics, interactive category views and protected group comparisons at mobile and desktop sizes" do
+  it "[UI-02] Kennzahlen und interaktive Gruppenansicht auf Desktop und schmalen Fenstern prüfen" do
     2.times { assessment }
     2.times { assessment(model: "Claude", age_group: "18–24") }
     visit "/result"
@@ -53,30 +54,30 @@ RSpec.describe "Results page", type: :feature do
       expect(page).to have_text("18–24")
     end
     [ 320, 375, 768, 1280 ].each do |width|
-      page.driver.browser.manage.window.resize_to(width, 900)
+      resize_evaluation_viewport(width)
       expect(page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")).to be(true), "Horizontal overflow at #{width}px"
     end
     page.execute_script("window.scrollTo(0, 0)")
-    page.save_screenshot("/tmp/alina-results-desktop.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-desktop.png"))
     page.execute_script("document.querySelector('#overview').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-results-overview.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-overview.png"))
     page.execute_script("document.querySelector('#categories').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-results-categories.png")
-    page.driver.browser.manage.window.resize_to(375, 900)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-categories.png"))
+    resize_evaluation_viewport(375)
     page.execute_script("window.scrollTo(0, 0)")
-    page.save_screenshot("/tmp/alina-results-mobile.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-mobile.png"))
     page.execute_script("document.querySelectorAll('nav a').forEach(link => { link.style.transition = 'none'; }); document.documentElement.classList.add('dark')")
-    page.save_screenshot("/tmp/alina-results-dark.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-dark.png"))
     page.execute_script("document.querySelector('#categories').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-results-categories-dark.png")
-    page.driver.browser.manage.window.resize_to(1280, 900)
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-categories-dark.png"))
+    resize_evaluation_viewport(1280)
     page.execute_script("document.querySelector('#groups').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-results-groups.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-groups.png"))
     page.execute_script("document.querySelector('#method').scrollIntoView()")
-    page.save_screenshot("/tmp/alina-results-method.png")
+    page.save_screenshot(File.join(ENV.fetch("EVALUATION_OUTPUT_DIR", "/tmp"), "alina-results-method.png"))
   end
 
-  it "explains undefined rates instead of displaying zero gap when every response is excluded" do
+  it "[UI-03] Undefinierte öffentliche Quoten verständlich kennzeichnen" do
     2.times { assessment(excluded: true) }
     visit "/result"
     within("#overview") do
@@ -86,7 +87,7 @@ RSpec.describe "Results page", type: :feature do
     end
   end
 
-  it "withholds entire group partitions containing undersized groups" do
+  it "[UI-04] Unzureichend große Gruppen auch in der Oberfläche zurückhalten" do
     2.times { assessment }
     assessment(model: "Claude", age_group: "18–24")
     visit "/result"
@@ -98,7 +99,7 @@ RSpec.describe "Results page", type: :feature do
       expect(page).not_to have_text("18–24")
     end
   end
-  it "shows sufficiently large age groups while withholding small groups and a protective complement" do
+  it "[UI-05] Ergänzende Altersgruppenunterdrückung korrekt darstellen" do
     2.times { assessment(age_group: "25–34") }
     3.times { assessment(age_group: "35–44") }
     assessment(age_group: "18–24")

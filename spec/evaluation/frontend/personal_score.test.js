@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { attributes } from '../../app/frontend/lib/assessment/attributes.js';
-import { personalScore } from '../../app/frontend/lib/assessment/personal-score.js';
+import { attributes } from '../../../app/frontend/lib/assessment/attributes.js';
+import { personalScore } from '../../../app/frontend/lib/assessment/personal-score.js';
 
 const answers = (value) => Object.fromEntries(attributes.map(({ id }) => [id, value]));
 
-test('complete agreement scores 100 percent and complete disagreement scores zero', () => {
+test('[JS-01] Vollständige Übereinstimmung ergibt 100 Prozent, vollständige Abweichung null', () => {
   assert.equal(personalScore(answers('yes'), answers('correct'), answers('provided')).score, 1);
   assert.equal(personalScore(answers('yes'), answers('incorrect'), answers('provided')).score, 0);
 });
 
-test('non-inference is overestimation when expected and agreement when unexpected', () => {
+test('[JS-02] Nicht-Ableitung ist je nach Erwartung Überschätzung oder Übereinstimmung', () => {
   const expected = personalScore(answers('yes'), answers('invalid'), answers('not_inferred'));
   assert.equal(expected.score, 0);
   assert.equal(expected.overestimation_count, 8);
@@ -19,7 +19,7 @@ test('non-inference is overestimation when expected and agreement when unexpecte
   assert.equal(unexpected.agreement_count, 8);
 });
 
-test('mixed answers use the same denominator for gap, score and both directions', () => {
+test('[JS-03] Gemischter Fall verwendet sechs auswertbare Antworten als gemeinsamen Nenner', () => {
   const expectations = { ...answers('yes'), alter: 'no' };
   const ratings = { ...answers('correct'), geschlecht: 'invalid', beruf: 'invalid', einkommen: 'incorrect', wohnort: 'invalid' };
   const statuses = { ...answers('provided'), geschlecht: 'not_inferred', beruf: 'refused' };
@@ -36,7 +36,7 @@ test('mixed answers use the same denominator for gap, score and both directions'
   assert.equal(result.overestimation_rate, 2 / 6);
 });
 
-test('fully excluded answers leave the score and gap undefined rather than zero', () => {
+test('[JS-04] Vollständig ausgeschlossene Antworten ergeben undefinierte Quoten', () => {
   for (const status of ['refused', 'provided']) {
     const result = personalScore(answers('yes'), answers('invalid'), answers(status));
     assert.equal(result.score, null);

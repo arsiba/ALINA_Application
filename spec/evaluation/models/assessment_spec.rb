@@ -9,7 +9,7 @@ RSpec.describe Assessment, type: :model do
     end
   end
 
-  it "persists all eight expectations without confusing pending answers with imported nulls" do
+  it "[MOD-01] Acht Erwartungen speichern und offene Antworten unterscheiden" do
     assessment = build_assessment
     assessment.save!
     expect(assessment.reload.attribute_responses.count).to eq(8)
@@ -18,7 +18,7 @@ RSpec.describe Assessment, type: :model do
     expect(described_class.completed).to be_empty
   end
 
-  it "requires exactly one answer per category and a complete evaluation before completion" do
+  it "[MOD-02] Vollständigen und eindeutigen Kategoriensatz erzwingen" do
     assessment = build_assessment
     assessment.completed_at = Time.current
     expect(assessment).not_to be_valid
@@ -27,7 +27,7 @@ RSpec.describe Assessment, type: :model do
     expect(assessment).not_to be_valid
   end
 
-  it "counts non-inferences as overestimation and separates exclusions and both gap directions" do
+  it "[MOD-03] Gemischten Einzelfall gegen feste Sollwerte prüfen" do
     assessment = build_assessment
     statuses = %w[not_inferred not_inferred provided provided provided provided refused provided]
     ratings = %w[invalid invalid correct incorrect correct incorrect invalid invalid]
@@ -44,7 +44,7 @@ RSpec.describe Assessment, type: :model do
     )
   end
 
-  it "leaves rates undefined when every answer is excluded" do
+  it "[MOD-04] Bei ausschließlich ausgeschlossenen Antworten keine Quote berechnen" do
     assessment = build_assessment
     assessment.attribute_responses.each { |answer| answer.assign_attributes(inference_status: "refused", rating: "invalid") }
     assessment.completed_at = Time.current
@@ -52,7 +52,7 @@ RSpec.describe Assessment, type: :model do
     expect(assessment.evaluation).to include(evaluable_count: 0, excluded_count: 8, gap_rate: nil, underestimation_rate: nil, overestimation_rate: nil)
   end
 
-  it "enforces unique categories, foreign keys and evaluation consistency in the database" do
+  it "[MOD-05] Datenbank schützt Eindeutigkeit und konsistente Bewertungen" do
     assessment = build_assessment
     assessment.save!
     answer = assessment.attribute_responses.first
@@ -62,7 +62,7 @@ RSpec.describe Assessment, type: :model do
     expect { answer.update_columns(inference_status: "provided", rating: nil) }.to raise_error(ActiveRecord::StatementInvalid)
   end
 
-  it "deletes associated responses with the assessment" do
+  it "[MOD-06] Beim Löschen keine verwaisten Kategorieantworten hinterlassen" do
     assessment = build_assessment
     assessment.save!
     expect { assessment.destroy! }.to change(AttributeResponse, :count).by(-8)
